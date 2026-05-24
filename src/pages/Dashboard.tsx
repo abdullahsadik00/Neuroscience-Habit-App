@@ -13,6 +13,9 @@ import AddHabitModal from '../components/AddHabitModal';
 import FreemiumBanner from '../components/FreemiumBanner';
 import BrainProfileCard from '../components/BrainProfileCard';
 import WeeklyCheckin from '../components/WeeklyCheckin';
+import RecalibrationSuggestions from '../components/RecalibrationSuggestions';
+import { runRecalibration } from '../utils/recalibrationEngine';
+import type { RecalibrationSuggestion } from '../store/useNeuroStore';
 import { getMissedStacks } from '../utils/comebackHelpers';
 import {
   calcRecoveryRate,
@@ -38,7 +41,7 @@ export default function Dashboard() {
     stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
     addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
-    lastCheckinDate, submitCheckin,
+    lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration,
   } = useNeuroStore();
 
   const { theme, toggleTheme } = useTheme();
@@ -54,6 +57,7 @@ export default function Dashboard() {
     const daysSince = (Date.now() - new Date(lastCheckinDate).getTime()) / 86_400_000;
     return daysSince >= CHECKIN_INTERVAL_DAYS;
   });
+  const [recalSuggestions, setRecalSuggestions] = useState<RecalibrationSuggestion[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => decayNeurochemistry(), 60000);
@@ -84,8 +88,29 @@ export default function Dashboard() {
             onSubmit={(record) => {
               submitCheckin(record);
               setShowCheckin(false);
+              // Run recalibration engine after checkin saves
+              const latestHistory = [
+                { ...record, id: 'pending', recalibrationApplied: false },
+                ...checkinHistory,
+              ];
+              const suggestions = runRecalibration(stacks, latestHistory, brainProfile);
+              if (suggestions.length > 0) setRecalSuggestions(suggestions);
             }}
             onDismiss={() => setShowCheckin(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Recalibration suggestions */}
+      <AnimatePresence>
+        {recalSuggestions.length > 0 && (
+          <RecalibrationSuggestions
+            suggestions={recalSuggestions}
+            onApply={(event) => {
+              applyRecalibration(event);
+              setRecalSuggestions([]);
+            }}
+            onDismiss={() => setRecalSuggestions([])}
           />
         )}
       </AnimatePresence>

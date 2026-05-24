@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getLocalDateString, calculateStreak, calculateMyelination, decayNeurochemical } from '../utils/neuroHelpers';
+import { HABIT_LIBRARY } from '../data/habitLibrary';
 
 export interface NeuroStack {
   id: string;
@@ -75,6 +76,26 @@ export interface CheckinRecord {
   recalibrationApplied: boolean;
 }
 
+export interface RecalibrationSuggestion {
+  id: string;
+  type: 'SCALE_DOWN' | 'REPLACE' | 'UPDATE_MICRO';
+  habitId?: string;
+  habitTitle?: string;
+  reason: string;
+  fromValue: string;
+  toValue: string;
+  replacementTemplateId?: string;
+}
+
+export interface RecalibrationEvent {
+  id: string;
+  date: string;
+  trigger: 'weekly-checkin';
+  suggestions: RecalibrationSuggestion[];
+  accepted: string[];
+  rejected: string[];
+}
+
 export interface NeuroBrainProfile {
   failureStyle: 'perfectionist' | 'avoider' | 'analyst' | 'drifter';
   peakEnergyWindow: 'morning' | 'afternoon' | 'evening' | 'variable';
@@ -101,6 +122,7 @@ interface NeuroState {
   blueprintAccepted: boolean;
   lastCheckinDate: string | null;
   checkinHistory: CheckinRecord[];
+  recalibrationLog: RecalibrationEvent[];
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -124,6 +146,7 @@ interface NeuroState {
   setBrainProfile: (profile: NeuroBrainProfile) => void;
   acceptBlueprint: () => void;
   submitCheckin: (record: Omit<CheckinRecord, 'id' | 'recalibrationApplied'>) => void;
+  applyRecalibration: (event: RecalibrationEvent) => void;
   upgradeToPro: () => void;
   completeOnboarding: () => void;
 
@@ -216,6 +239,7 @@ export const useNeuroStore = create<NeuroState>()(
       blueprintAccepted: false,
       lastCheckinDate: null,
       checkinHistory: [],
+      recalibrationLog: [],
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -510,6 +534,76 @@ export const useNeuroStore = create<NeuroState>()(
           checkinHistory: [full, ...state.checkinHistory],
           lastCheckinDate: full.date,
         }));
+      },
+
+      applyRecalibration: (event) => {
+        set((state) => {
+          let updatedStacks = [...state.stacks];
+
+          for (const sid of event.accepted) {
+            const suggestion = event.suggestions.find(s => s.id === sid);
+            if (!suggestion) continue;
+
+            if (suggestion.type === 'SCALE_DOWN' && suggestion.habitId && suggestion.replacementTemplateId) {
+              const template = HABIT_LIBRARY.find(h => h.id === suggestion.replacementTemplateId);
+              if (template) {
+                updatedStacks = updatedStacks.map(s =>
+                  s.id === suggestion.habitId
+                    ? {
+                        ...s,
+                        title: template.title,
+                        anchorCue: template.anchorCue,
+                        action: template.action,
+                        reward: template.reward,
+                        completions: [],
+                        streak: 0,
+                        myelinationLevel: 0,
+                      }
+                    : s
+                );
+              }
+            }
+
+            if (suggestion.type === 'REPLACE' && suggestion.habitId && suggestion.replacementTemplateId) {
+              const template = HABIT_LIBRARY.find(h => h.id === suggestion.replacementTemplateId);
+              if (template) {
+                // Archive old habit, add replacement
+                updatedStacks = updatedStacks.map(s =>
+                  s.id === suggestion.habitId ? { ...s, isActive: false } : s
+                );
+                const newStack: NeuroStack = {
+                  id: `stack-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  title: template.title,
+                  anchorCue: template.anchorCue,
+                  action: template.action,
+                  reward: template.reward,
+                  category: template.category,
+                  acetylcholineDuration: 10,
+                  myelinationLevel: 0,
+                  streak: 0,
+                  completions: [],
+                  createdAt: new Date().toISOString(),
+                  isActive: true,
+                };
+                updatedStacks = [newStack, ...updatedStacks];
+              }
+            }
+
+            // UPDATE_MICRO: stored in log — Dashboard/ComebackProtocol reads latest event
+            // to contextualise micro-actions (no stack mutation needed)
+          }
+
+          // Mark checkin record as recalibrated
+          const updatedCheckins = state.checkinHistory.map(c =>
+            c.id === state.checkinHistory[0]?.id ? { ...c, recalibrationApplied: true } : c
+          );
+
+          return {
+            stacks: updatedStacks,
+            checkinHistory: updatedCheckins,
+            recalibrationLog: [event, ...state.recalibrationLog],
+          };
+        });
       },
 
       upgradeToPro: () => {
