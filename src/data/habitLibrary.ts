@@ -17,6 +17,8 @@ export interface HabitTemplate {
     peakEnergyWindow?: Array<NeuroBrainProfile['peakEnergyWindow']>;
     coreDriver?: Array<NeuroBrainProfile['coreDriver']>;
   };
+  /** Neurochemicals this habit measurably supports, based on published research. */
+  neurochemTarget?: Array<'dopamine' | 'acetylcholine' | 'epinephrine' | 'gaba'>;
   liteVersionId?: string;
 }
 
@@ -39,6 +41,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['perform-better', 'become-someone'],
     },
+    neurochemTarget: ['acetylcholine'],
   },
   {
     id: 'focus-deep-work-block',
@@ -57,6 +60,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better'],
     },
+    neurochemTarget: ['acetylcholine'],
     liteVersionId: 'focus-micro-work-block',
   },
   {
@@ -76,6 +80,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['feel-better', 'perform-better'],
     },
+    neurochemTarget: ['acetylcholine'],
   },
   {
     id: 'focus-review-close',
@@ -94,6 +99,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening', 'afternoon'],
       coreDriver: ['perform-better', 'feel-better'],
     },
+    neurochemTarget: ['gaba', 'acetylcholine'],
   },
   {
     id: 'focus-phone-distance',
@@ -112,6 +118,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['feel-better', 'become-someone'],
     },
+    neurochemTarget: ['dopamine'],
   },
   {
     id: 'focus-single-tab',
@@ -130,6 +137,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better'],
     },
+    neurochemTarget: ['acetylcholine'],
   },
 
   // ── WELLNESS HABITS ─────────────────────────────────────────────────────────
@@ -168,6 +176,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['feel-better', 'perform-better'],
     },
+    neurochemTarget: ['dopamine'],
   },
   {
     id: 'wellness-neuro-break',
@@ -186,6 +195,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['feel-better', 'perform-better'],
     },
+    neurochemTarget: ['gaba', 'acetylcholine'],
   },
   {
     id: 'wellness-walk',
@@ -204,6 +214,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['afternoon', 'variable'],
       coreDriver: ['feel-better'],
     },
+    neurochemTarget: ['gaba', 'dopamine'],
   },
   {
     id: 'wellness-sleep-anchor',
@@ -222,6 +233,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['acetylcholine', 'gaba'],
   },
   {
     id: 'wellness-breath-reset',
@@ -240,6 +252,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['gaba', 'epinephrine'],
   },
   {
     id: 'wellness-cold-exposure',
@@ -258,6 +271,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['perform-better', 'feel-better'],
     },
+    neurochemTarget: ['dopamine', 'epinephrine'],
   },
   {
     id: 'wellness-no-caffeine-after-2',
@@ -276,6 +290,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['afternoon'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['gaba', 'acetylcholine'],
   },
 
   // ── MINDSET HABITS ──────────────────────────────────────────────────────────
@@ -296,6 +311,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['feel-better', 'become-someone'],
     },
+    neurochemTarget: ['gaba'],
   },
   {
     id: 'mindset-failure-reframe',
@@ -314,6 +330,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['become-someone', 'feel-better'],
     },
+    neurochemTarget: ['gaba', 'acetylcholine'],
   },
   {
     id: 'mindset-identity-statement',
@@ -332,6 +349,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['become-someone'],
     },
+    neurochemTarget: ['dopamine'],
   },
   {
     id: 'mindset-weekly-review',
@@ -350,6 +368,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better', 'become-someone'],
     },
+    neurochemTarget: ['acetylcholine', 'dopamine'],
   },
   {
     id: 'mindset-self-compassion',
@@ -368,6 +387,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['feel-better', 'become-someone'],
     },
+    neurochemTarget: ['gaba'],
   },
   {
     id: 'mindset-no-decision-morning',
@@ -386,6 +406,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['perform-better', 'feel-better'],
     },
+    neurochemTarget: ['gaba'],
   },
   {
     id: 'mindset-gratitude-3',
@@ -404,6 +425,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['feel-better'],
     },
+    neurochemTarget: ['dopamine'],
   },
 
   // ── FITNESS HABITS ──────────────────────────────────────────────────────────
@@ -424,6 +446,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['dopamine', 'epinephrine'],
   },
   {
     id: 'fitness-zone2-cardio',
@@ -442,6 +465,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better', 'feel-better'],
     },
+    neurochemTarget: ['dopamine', 'gaba'],
     liteVersionId: 'fitness-morning-movement',
   },
   {
@@ -461,6 +485,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable', 'afternoon'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['dopamine', 'epinephrine'],
   },
   {
     id: 'fitness-stretch-routine',
@@ -479,6 +504,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['feel-better'],
     },
+    neurochemTarget: ['gaba', 'epinephrine'],
   },
   {
     id: 'fitness-strength-session',
@@ -497,6 +523,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better', 'become-someone'],
     },
+    neurochemTarget: ['dopamine'],
     liteVersionId: 'fitness-desk-pushups',
   },
   {
@@ -516,6 +543,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['dopamine'],
   },
 
   // ── MORE CROSS-CATEGORY HABITS ───────────────────────────────────────────────
@@ -536,6 +564,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['become-someone', 'perform-better'],
     },
+    neurochemTarget: ['acetylcholine'],
   },
   {
     id: 'mindset-obstacle-visualisation',
@@ -554,6 +583,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better', 'become-someone'],
     },
+    neurochemTarget: ['acetylcholine'],
   },
   {
     id: 'wellness-meal-prep-anchor',
@@ -572,6 +602,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['feel-better', 'perform-better'],
     },
+    neurochemTarget: ['gaba'],
   },
   {
     id: 'focus-email-batching',
@@ -590,6 +621,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning', 'afternoon'],
       coreDriver: ['perform-better'],
     },
+    neurochemTarget: ['acetylcholine', 'dopamine'],
   },
   {
     id: 'mindset-one-hard-thing',
@@ -608,6 +640,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['morning'],
       coreDriver: ['perform-better', 'become-someone'],
     },
+    neurochemTarget: ['dopamine', 'acetylcholine'],
   },
   {
     id: 'wellness-evening-wind-down',
@@ -626,6 +659,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['evening'],
       coreDriver: ['feel-better', 'survive'],
     },
+    neurochemTarget: ['gaba', 'acetylcholine'],
   },
   {
     id: 'fitness-posture-reset',
@@ -644,6 +678,7 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['variable'],
       coreDriver: ['feel-better', 'perform-better'],
     },
+    neurochemTarget: ['epinephrine'],
   },
   {
     id: 'mindset-learning-capture',
@@ -662,5 +697,46 @@ export const HABIT_LIBRARY: HabitTemplate[] = [
       peakEnergyWindow: ['afternoon', 'evening'],
       coreDriver: ['become-someone', 'perform-better'],
     },
+    neurochemTarget: ['acetylcholine'],
+  },
+
+  // ── SLEEP CONSOLIDATION HABITS ───────────────────────────────────────────────
+  {
+    id: 'wellness-sleep-body-scan',
+    title: 'Pre-Sleep Body Scan',
+    anchorCue: 'After I get into bed and close my eyes',
+    action: 'Slowly scan from toes to crown — notice and release tension in each body part over 10 minutes',
+    reward: 'Your nervous system just shifted to parasympathetic. Sleep onset accelerating.',
+    category: 'wellness',
+    timing: 'evening',
+    energyRequired: 'low',
+    duration: '10min',
+    description: 'Raises GABA tone and reduces cortical arousal — sleep consolidates the ACh-dependent learning from your day (Bellesi et al., 2013).',
+    tags: {
+      failureStyle: ['perfectionist', 'analyst'],
+      primaryBlocker: ['energy', 'overwhelm'],
+      peakEnergyWindow: ['evening'],
+      coreDriver: ['feel-better', 'perform-better'],
+    },
+    neurochemTarget: ['gaba', 'acetylcholine'],
+  },
+  {
+    id: 'wellness-sleep-consistency',
+    title: 'Fixed Wake Alarm',
+    anchorCue: 'Regardless of when I fell asleep, when my alarm rings at my fixed wake time',
+    action: 'Get up immediately — no snooze. Same wake time every day, including weekends.',
+    reward: 'Sleep regularity matters more than duration. Your adenosine clock just got stronger.',
+    category: 'wellness',
+    timing: 'morning',
+    energyRequired: 'medium',
+    duration: '2min',
+    description: 'Consistent wake time is the single highest-impact sleep intervention — regulates adenosine, circadian timing, and next-day dopamine baseline.',
+    tags: {
+      failureStyle: ['drifter', 'avoider'],
+      primaryBlocker: ['energy', 'life'],
+      peakEnergyWindow: ['morning'],
+      coreDriver: ['feel-better', 'perform-better', 'survive'],
+    },
+    neurochemTarget: ['dopamine', 'acetylcholine'],
   },
 ];

@@ -73,6 +73,10 @@ export interface CheckinRecord {
   energyLevel: 'low' | 'normal' | 'high';
   routineChanged: boolean;
   routineNote?: string;
+  /** Wendy Wood: context/environment change is the #1 predictor of habit disruption */
+  contextChanged?: boolean;
+  /** Dynamic failure mode this week — may differ from the one-time brain assessment */
+  currentFailureMode?: NeuroBrainProfile['failureStyle'];
   recalibrationApplied: boolean;
 }
 

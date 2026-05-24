@@ -11,10 +11,10 @@ interface ChemConfig {
 }
 
 const CHEMS: ChemConfig[] = [
-  { key: 'dopamine',      label: 'Dopamine',      abbr: 'DA',   barColor: 'bg-sky-400',     description: 'Motivation & reward drive' },
-  { key: 'acetylcholine', label: 'Acetylcholine', abbr: 'ACh',  barColor: 'bg-violet-400',  description: 'Focus & learning depth' },
-  { key: 'epinephrine',   label: 'Epinephrine',   abbr: 'EPI',  barColor: 'bg-rose-400',    description: 'Stress & urgency signal' },
-  { key: 'gaba',          label: 'GABA',          abbr: 'GABA', barColor: 'bg-emerald-400', description: 'Calm & recovery state' },
+  { key: 'dopamine',      label: 'Dopamine',      abbr: 'DA',   barColor: 'bg-sky-400',     description: 'Anticipation & motivation — fires before the reward, not after' },
+  { key: 'acetylcholine', label: 'Acetylcholine', abbr: 'ACh',  barColor: 'bg-violet-400',  description: 'Focus & learning depth — gates neuroplasticity' },
+  { key: 'epinephrine',   label: 'Epinephrine',   abbr: 'EPI',  barColor: 'bg-rose-400',    description: 'Arousal & urgency — your brain flagging this moment as important' },
+  { key: 'gaba',          label: 'GABA',          abbr: 'GABA', barColor: 'bg-emerald-400', description: 'Calm & recovery — inhibitory brake on stress circuits' },
 ];
 
 export default function NeurochemHUD({ neurochemistry }: { neurochemistry: Neurochemistry }) {

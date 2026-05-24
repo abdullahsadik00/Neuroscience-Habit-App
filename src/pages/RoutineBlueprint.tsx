@@ -32,13 +32,13 @@ const DURATION_LABEL: Record<string, string> = {
 };
 
 export default function RoutineBlueprint() {
-  const { brainProfile, addNeuroStack, acceptBlueprint } = useNeuroStore();
+  const { brainProfile, addNeuroStack, acceptBlueprint, neurochemistry } = useNeuroStore();
   const { theme, toggleTheme } = useTheme();
 
   const initialBlueprint = useMemo(() => {
     if (!brainProfile) return [];
-    return buildBlueprint(brainProfile);
-  }, [brainProfile]);
+    return buildBlueprint(brainProfile, neurochemistry);
+  }, [brainProfile, neurochemistry]);
 
   const [habits, setHabits] = useState<HabitTemplate[]>(initialBlueprint);
   const [swapTarget, setSwapTarget] = useState<string | null>(null);
