@@ -87,6 +87,7 @@ interface NeuroState {
   isPro: boolean;
   onboardingComplete: boolean;
   brainProfile: NeuroBrainProfile | null;
+  blueprintAccepted: boolean;
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -108,6 +109,7 @@ interface NeuroState {
   // Profile / Pro Actions
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setBrainProfile: (profile: NeuroBrainProfile) => void;
+  acceptBlueprint: () => void;
   upgradeToPro: () => void;
   completeOnboarding: () => void;
 
@@ -197,6 +199,7 @@ export const useNeuroStore = create<NeuroState>()(
       isPro: false,
       onboardingComplete: false,
       brainProfile: null,
+      blueprintAccepted: false,
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -475,6 +478,10 @@ export const useNeuroStore = create<NeuroState>()(
 
       setBrainProfile: (profile) => {
         set({ brainProfile: profile });
+      },
+
+      acceptBlueprint: () => {
+        set({ blueprintAccepted: true });
       },
 
       upgradeToPro: () => {
