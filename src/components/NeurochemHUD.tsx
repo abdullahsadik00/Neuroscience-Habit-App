@@ -1,5 +1,5 @@
 import React from 'react';
-import { Neurochemistry } from '../store/useNeuroStore';
+import type { Neurochemistry } from '../store/useNeuroStore';
 
 interface ChemConfig {
   key: keyof Neurochemistry;

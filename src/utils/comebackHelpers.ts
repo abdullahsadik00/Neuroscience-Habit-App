@@ -1,4 +1,4 @@
-import { NeuroStack } from '../store/useNeuroStore';
+import type { NeuroStack } from '../store/useNeuroStore';
 import { getLocalDateString } from './neuroHelpers';
 
 export function getMissedStacks(

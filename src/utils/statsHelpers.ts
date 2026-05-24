@@ -1,4 +1,4 @@
-import { NeuroStack, NeuroSwap, ComebackRecord, Neurochemistry } from '../store/useNeuroStore';
+import type { NeuroStack, NeuroSwap, ComebackRecord, Neurochemistry } from '../store/useNeuroStore';
 import { getLocalDateString } from './neuroHelpers';
 
 export interface WeekDay {

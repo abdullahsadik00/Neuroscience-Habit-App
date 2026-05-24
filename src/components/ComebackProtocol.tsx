@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NeuroStack } from '../store/useNeuroStore';
+import type { NeuroStack } from '../store/useNeuroStore';
 import { getComebackMessage, generateMicroActions, getDaysMissed } from '../utils/comebackHelpers';
 import { ArrowRight, CheckSquare, Square } from 'lucide-react';
 
