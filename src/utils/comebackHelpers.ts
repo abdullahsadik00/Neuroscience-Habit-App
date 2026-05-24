@@ -29,7 +29,7 @@ export function getDaysMissed(stack: NeuroStack): number {
   return Math.max(1, Math.floor(diffMs / 86400000));
 }
 
-interface ReframeMessage {
+export interface ReframeMessage {
   headline: string;
   body: string;
 }
