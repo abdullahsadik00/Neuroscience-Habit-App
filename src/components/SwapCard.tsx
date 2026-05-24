@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2, AlertOctagon, Shield } from 'lucide-react';
-import { NeuroSwap } from '../store/useNeuroStore';
+import type { NeuroSwap } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
 
 interface Props {

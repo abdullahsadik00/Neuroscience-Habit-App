@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
-import { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
+import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
 import { getWeekGrid, getDaysMissed } from '../utils/statsHelpers';
 import WeeklyGrid from './WeeklyGrid';

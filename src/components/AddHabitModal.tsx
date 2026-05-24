@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Plus, Brain, Zap, Shield, Dumbbell, Sparkles } from 'lucide-react';
-import { NeuroStack, NeuroSwap } from '../store/useNeuroStore';
+import type { NeuroStack, NeuroSwap } from '../store/useNeuroStore';
 
 type Mode = 'stack' | 'swap';
 
