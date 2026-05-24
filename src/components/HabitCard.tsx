@@ -2,7 +2,8 @@ import React from 'react';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
-import { getWeekGrid, getDaysMissed } from '../utils/statsHelpers';
+import { getWeekGrid } from '../utils/statsHelpers';
+import { getDaysMissed } from '../utils/comebackHelpers';
 import WeeklyGrid from './WeeklyGrid';
 
 const CATEGORY_COLORS: Record<string, string> = {
