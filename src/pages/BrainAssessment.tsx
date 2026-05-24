@@ -1,28 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNeuroStore } from '../store/useNeuroStore';
+import { useTheme } from '../contexts/ThemeContext';
 import type { NeuroBrainProfile } from '../store/useNeuroStore';
 import { getArchetypeName, getProfileInsights } from '../utils/brainHelpers';
 
-// ── Question definitions ──────────────────────────────────────────────────────
-
 type QuestionKey = keyof Omit<NeuroBrainProfile, 'completedAt'>;
-
-interface Answer {
-  label: string;
-  sub: string;
-  value: string;
-}
-
-interface Question {
-  key: QuestionKey;
-  text: string;
-  answers: Answer[];
-}
+interface Answer { label: string; sub: string; value: string; }
+interface Question { key: QuestionKey; text: string; icon: string; answers: Answer[]; }
 
 const QUESTIONS: Question[] = [
-  {
-    key: 'failureStyle',
-    text: 'When you miss something important, what\'s your first instinct?',
+  { key: 'failureStyle', icon: '🧠', text: 'When you miss something important, what\'s your first instinct?',
     answers: [
       { label: 'Get frustrated with myself', sub: 'I set a high bar and I know I missed it', value: 'perfectionist' },
       { label: 'Avoid thinking about it', sub: 'It\'s easier to not look at the gap', value: 'avoider' },
@@ -30,9 +19,7 @@ const QUESTIONS: Question[] = [
       { label: 'Just move on', sub: 'I drift to the next thing without much processing', value: 'drifter' },
     ],
   },
-  {
-    key: 'motivationSource',
-    text: 'What usually gets you started on a habit?',
+  { key: 'motivationSource', icon: '⚡', text: 'What usually gets you started on a habit?',
     answers: [
       { label: 'Who I want to become', sub: 'The identity pull is what moves me', value: 'identity' },
       { label: 'A specific outcome', sub: 'I can see the result and I want it', value: 'outcome' },
@@ -40,9 +27,7 @@ const QUESTIONS: Question[] = [
       { label: 'Necessity', sub: 'I do it because I have to', value: 'survival' },
     ],
   },
-  {
-    key: 'peakEnergyWindow',
-    text: 'When is your mental energy highest?',
+  { key: 'peakEnergyWindow', icon: '🕐', text: 'When is your mental energy highest?',
     answers: [
       { label: 'Morning', sub: 'First few hours after waking are my sharpest', value: 'morning' },
       { label: 'Afternoon', sub: 'I warm up and hit a peak mid-day', value: 'afternoon' },
@@ -50,9 +35,7 @@ const QUESTIONS: Question[] = [
       { label: 'It varies', sub: 'Depends on the day, sleep, and context', value: 'variable' },
     ],
   },
-  {
-    key: 'recoverySpeed',
-    text: 'After a setback, how long do you usually feel stuck?',
+  { key: 'recoverySpeed', icon: '🔄', text: 'After a setback, how long do you usually feel stuck?',
     answers: [
       { label: 'A few minutes', sub: 'I reset and continue fast', value: 'fast' },
       { label: 'A few hours', sub: 'I need time to process', value: 'medium' },
@@ -60,9 +43,7 @@ const QUESTIONS: Question[] = [
       { label: 'It varies', sub: 'Depends completely on the situation', value: 'variable' },
     ],
   },
-  {
-    key: 'primaryBlocker',
-    text: 'What most often breaks your habits?',
+  { key: 'primaryBlocker', icon: '🧱', text: 'What most often breaks your habits?',
     answers: [
       { label: 'Low energy', sub: 'I just don\'t have the fuel when it\'s time', value: 'energy' },
       { label: 'Overwhelm', sub: 'Too many things competing for my attention', value: 'overwhelm' },
@@ -70,9 +51,7 @@ const QUESTIONS: Question[] = [
       { label: 'Life events', sub: 'External circumstances knock me off track', value: 'life' },
     ],
   },
-  {
-    key: 'selfTalkPattern',
-    text: 'What does your inner voice say after missing a habit?',
+  { key: 'selfTalkPattern', icon: '💬', text: 'What does your inner voice say after missing a habit?',
     answers: [
       { label: '"I should have done better"', sub: 'Self-critical and exacting', value: 'self-critical' },
       { label: '"I don\'t want to think about it"', sub: 'I push it away', value: 'avoidant' },
@@ -80,9 +59,7 @@ const QUESTIONS: Question[] = [
       { label: '"Maybe this just isn\'t for me"', sub: 'Defeated or hopeless', value: 'hopeless' },
     ],
   },
-  {
-    key: 'accountabilityStyle',
-    text: 'How do you best hold yourself accountable?',
+  { key: 'accountabilityStyle', icon: '📊', text: 'How do you best hold yourself accountable?',
     answers: [
       { label: 'Tracking and metrics', sub: 'Numbers and streaks keep me honest', value: 'tracking' },
       { label: 'Social commitment', sub: 'Knowing someone else knows helps', value: 'external' },
@@ -90,9 +67,7 @@ const QUESTIONS: Question[] = [
       { label: 'I don\'t rely on accountability', sub: 'I prefer low-pressure approaches', value: 'none' },
     ],
   },
-  {
-    key: 'coreDriver',
-    text: 'What do you actually want your habits to do for you?',
+  { key: 'coreDriver', icon: '🎯', text: 'What do you actually want your habits to do for you?',
     answers: [
       { label: 'Feel better daily', sub: 'More energy, less stress, better mood', value: 'feel-better' },
       { label: 'Perform at a higher level', sub: 'Output, capability, results', value: 'perform-better' },
@@ -102,40 +77,27 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 type Answers = Partial<Record<QuestionKey, string>>;
-
 type Phase = 'questions' | 'processing' | 'reveal';
-
-const CATEGORY_ICONS: Record<string, string> = {
-  failureStyle: '🧠',
-  motivationSource: '⚡',
-  peakEnergyWindow: '🕐',
-  recoverySpeed: '🔄',
-  primaryBlocker: '🧱',
-  selfTalkPattern: '💬',
-  accountabilityStyle: '📊',
-  coreDriver: '🎯',
-};
 
 export default function BrainAssessment() {
   const setBrainProfile = useNeuroStore(s => s.setBrainProfile);
+  const { theme, toggleTheme } = useTheme();
 
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('questions');
-  const [animDir, setAnimDir] = useState<'in' | 'out'>('in');
+  const [dir, setDir] = useState(1);
   const [profile, setProfile] = useState<NeuroBrainProfile | null>(null);
 
   const question = QUESTIONS[currentQ];
   const progress = ((currentQ) / QUESTIONS.length) * 100;
 
   function handleSelect(value: string) {
-    if (selected) return; // already chosen, waiting for transition
+    if (selected) return;
     setSelected(value);
-    setTimeout(() => advance(value), 320);
+    setTimeout(() => advance(value), 300);
   }
 
   function advance(value: string) {
@@ -143,14 +105,12 @@ export default function BrainAssessment() {
     setAnswers(next);
 
     if (currentQ < QUESTIONS.length - 1) {
-      setAnimDir('out');
+      setDir(1);
       setTimeout(() => {
         setCurrentQ(q => q + 1);
         setSelected(null);
-        setAnimDir('in');
-      }, 220);
+      }, 200);
     } else {
-      // All answered — build profile and go to processing
       const built: NeuroBrainProfile = {
         failureStyle: (next.failureStyle ?? 'analyst') as NeuroBrainProfile['failureStyle'],
         peakEnergyWindow: (next.peakEnergyWindow ?? 'morning') as NeuroBrainProfile['peakEnergyWindow'],
@@ -167,14 +127,9 @@ export default function BrainAssessment() {
     }
   }
 
-  function handleSkip() {
-    advance('analyst'); // fallback value for current question
-  }
-
-  // Auto-advance from processing to reveal after 1.5s
   useEffect(() => {
     if (phase === 'processing') {
-      const t = setTimeout(() => setPhase('reveal'), 1600);
+      const t = setTimeout(() => setPhase('reveal'), 1800);
       return () => clearTimeout(t);
     }
   }, [phase]);
@@ -183,176 +138,208 @@ export default function BrainAssessment() {
     if (profile) setBrainProfile(profile);
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
+  // ── Processing ──────────────────────────────────────────────────────────────
   if (phase === 'processing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0f] px-6">
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative w-20 h-20">
-            <div className="absolute inset-0 rounded-full border-2 border-indigo-500/30 animate-ping" />
-            <div className="absolute inset-2 rounded-full border-2 border-indigo-400/50 animate-pulse" />
-            <div className="absolute inset-4 rounded-full bg-indigo-500/20 flex items-center justify-center text-2xl animate-pulse">
-              🧠
-            </div>
+      <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] flex flex-col items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="relative w-16 h-16">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 dark:border-t-indigo-400"
+            />
+            <div className="absolute inset-2 flex items-center justify-center text-2xl">🧠</div>
           </div>
           <div className="text-center">
-            <p className="text-white/60 text-sm tracking-widest uppercase">Mapping your profile</p>
-            <div className="mt-3 flex gap-1 justify-center">
+            <p className="text-[13px] font-medium text-[color:var(--text-2)] tracking-widest uppercase mb-3">
+              Mapping your profile
+            </p>
+            <div className="flex gap-1.5 justify-center">
               {[0, 1, 2].map(i => (
-                <span
+                <motion.span
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
+                  className="w-1.5 h-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
                 />
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
+  // ── Reveal ──────────────────────────────────────────────────────────────────
   if (phase === 'reveal' && profile) {
     const archetype = getArchetypeName(profile);
     const insights = getProfileInsights(profile);
+
     return (
-      <div className="min-h-screen bg-[#0a0a0f] px-6 py-12 flex flex-col items-center">
-        <div className="w-full max-w-md flex flex-col gap-8 animate-fade-in">
-          {/* Header */}
-          <div className="text-center">
-            <p className="text-white/40 text-xs tracking-widest uppercase mb-3">Your neural profile</p>
-            <h1 className="text-2xl font-semibold text-white leading-tight">
-              {archetype}
-            </h1>
-            <p className="text-white/40 text-sm mt-2">
-              Based on your 8 responses — this shapes everything in the app.
-            </p>
-          </div>
+      <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] px-6 py-12">
+        <div className="max-w-md mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col gap-6"
+          >
+            {/* Header */}
+            <div className="text-center">
+              <p className="section-header mb-3">Your Neural Profile</p>
+              <h1 className="text-[28px] font-bold text-[color:var(--text-1)] tracking-tight leading-tight">
+                {archetype}
+              </h1>
+              <p className="text-[13px] text-[color:var(--text-2)] mt-2">
+                Based on your 8 responses — this shapes everything in the app.
+              </p>
+            </div>
 
-          {/* Insight cards */}
-          <div className="flex flex-col gap-3">
-            {insights.map((insight, i) => (
-              <div
-                key={i}
-                className="bg-white/5 border border-white/8 rounded-2xl px-4 py-4 flex gap-3 items-start"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <span className="text-indigo-400 text-sm mt-0.5 shrink-0">✦</span>
-                <p className="text-white/75 text-sm leading-relaxed">{insight}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Profile dimensions summary */}
-          <div className="bg-white/3 border border-white/8 rounded-2xl px-4 py-4">
-            <p className="text-white/30 text-xs tracking-widest uppercase mb-3">Profile dimensions</p>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                ['Failure style', profile.failureStyle],
-                ['Peak energy', profile.peakEnergyWindow],
-                ['Primary blocker', profile.primaryBlocker],
-                ['Recovery speed', profile.recoverySpeed],
-                ['Accountability', profile.accountabilityStyle],
-                ['Core driver', profile.coreDriver],
-              ] as [string, string][]).map(([label, val]) => (
-                <div key={label} className="flex flex-col gap-0.5">
-                  <span className="text-white/30 text-[10px] uppercase tracking-wide">{label}</span>
-                  <span className="text-white/70 text-xs capitalize">{val.replace(/-/g, ' ')}</span>
-                </div>
+            {/* Insights */}
+            <div className="flex flex-col gap-3">
+              {insights.map((insight, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
+                  className="card-2 px-4 py-4 rounded-xl flex gap-3 items-start"
+                >
+                  <span className="text-indigo-500 dark:text-indigo-400 text-sm mt-0.5 shrink-0">✦</span>
+                  <p className="text-[13px] text-[color:var(--text-1)] leading-relaxed">{insight}</p>
+                </motion.div>
               ))}
             </div>
-          </div>
 
-          {/* CTA */}
-          <button
-            onClick={handleApply}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-medium py-4 rounded-2xl transition-all duration-200 text-base"
-          >
-            Apply to my system →
-          </button>
+            {/* Profile dimensions */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="card p-5"
+            >
+              <p className="section-header mb-4">Profile Dimensions</p>
+              <div className="grid grid-cols-2 gap-4">
+                {([
+                  ['Failure style', profile.failureStyle],
+                  ['Peak energy', profile.peakEnergyWindow],
+                  ['Primary blocker', profile.primaryBlocker],
+                  ['Recovery speed', profile.recoverySpeed],
+                  ['Accountability', profile.accountabilityStyle],
+                  ['Core driver', profile.coreDriver],
+                ] as [string, string][]).map(([label, val]) => (
+                  <div key={label}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mb-0.5">{label}</p>
+                    <p className="text-[13px] font-medium text-[color:var(--text-1)] capitalize">{val.replace(/-/g, ' ')}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
 
-          <p className="text-center text-white/25 text-xs">
-            You can retake the assessment later from Settings
-          </p>
+            {/* CTA */}
+            <motion.button
+              onClick={handleApply}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="btn-primary w-full h-14 rounded-[16px]"
+            >
+              Apply to my system →
+            </motion.button>
+
+            <p className="text-center text-[11px] text-[color:var(--text-3)]">
+              You can retake the assessment later from Settings
+            </p>
+          </motion.div>
         </div>
       </div>
     );
   }
 
-  // ── Questions phase ───────────────────────────────────────────────────────
-
+  // ── Questions ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
-      {/* Progress bar + header */}
-      <div className="px-6 pt-safe pt-6 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-1.5 items-center">
-            {QUESTIONS.map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 rounded-full transition-all duration-300 ${
-                  i < currentQ
-                    ? 'bg-indigo-500 w-5'
-                    : i === currentQ
-                    ? 'bg-indigo-400 w-5'
-                    : 'bg-white/10 w-3'
-                }`}
-              />
-            ))}
-          </div>
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] flex flex-col">
+      {/* Theme toggle */}
+      <button onClick={toggleTheme} className="theme-toggle fixed top-5 right-5 z-50">
+        {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      </button>
+
+      {/* Progress bar */}
+      <div className="px-6 pt-8 pb-6 max-w-md mx-auto w-full">
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-[12px] font-medium text-[color:var(--text-3)]">
+            Question {currentQ + 1} of {QUESTIONS.length}
+          </p>
           <button
-            onClick={handleSkip}
-            className="text-white/30 text-xs hover:text-white/50 transition-colors"
+            onClick={() => advance('analyst')}
+            className="text-[12px] font-medium text-[color:var(--text-3)] hover:text-[color:var(--text-2)] transition-colors"
           >
             Skip →
           </button>
         </div>
-        <p className="text-white/30 text-xs">
-          Question {currentQ + 1} of {QUESTIONS.length}
-        </p>
+        <div className="h-[3px] progress-track">
+          <motion.div
+            className="progress-fill bg-indigo-500 dark:bg-indigo-400"
+            initial={false}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
+        </div>
       </div>
 
-      {/* Question content */}
-      <div
-        className="flex-1 flex flex-col px-6 pb-8"
-        style={{
-          opacity: animDir === 'in' ? 1 : 0,
-          transform: animDir === 'in' ? 'translateY(0)' : 'translateY(12px)',
-          transition: 'opacity 0.22s ease, transform 0.22s ease',
-        }}
-      >
-        <div className="mb-8 mt-2">
-          <div className="text-3xl mb-3">{CATEGORY_ICONS[question.key]}</div>
-          <h2 className="text-xl font-medium text-white leading-snug">
-            {question.text}
-          </h2>
-        </div>
+      {/* Question */}
+      <div className="flex-1 px-6 pb-10 max-w-md mx-auto w-full">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQ}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <div className="mb-8">
+              <div className="text-3xl mb-4">{question.icon}</div>
+              <h2 className="text-[22px] font-semibold text-[color:var(--text-1)] leading-snug tracking-tight">
+                {question.text}
+              </h2>
+            </div>
 
-        <div className="flex flex-col gap-3">
-          {question.answers.map((ans) => {
-            const isSelected = selected === ans.value;
-            return (
-              <button
-                key={ans.value}
-                onClick={() => handleSelect(ans.value)}
-                disabled={!!selected}
-                className={`w-full text-left px-4 py-4 rounded-2xl border transition-all duration-200 active:scale-98 ${
-                  isSelected
-                    ? 'bg-indigo-600/30 border-indigo-500/60 scale-[0.98]'
-                    : 'bg-white/4 border-white/10 hover:bg-white/7 hover:border-white/20'
-                }`}
-              >
-                <p className={`font-medium text-sm leading-snug ${isSelected ? 'text-indigo-200' : 'text-white/85'}`}>
-                  {ans.label}
-                </p>
-                <p className={`text-xs mt-0.5 leading-relaxed ${isSelected ? 'text-indigo-300/70' : 'text-white/35'}`}>
-                  {ans.sub}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+            <div className="flex flex-col gap-3">
+              {question.answers.map(ans => {
+                const isSelected = selected === ans.value;
+                return (
+                  <button
+                    key={ans.value}
+                    onClick={() => handleSelect(ans.value)}
+                    disabled={!!selected}
+                    className={`w-full text-left card p-4 transition-all ${
+                      isSelected
+                        ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                        : 'card-hover'
+                    }`}
+                  >
+                    <p className={`text-[14px] font-semibold leading-snug mb-0.5 ${
+                      isSelected ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+                    }`}>
+                      {ans.label}
+                    </p>
+                    <p className={`text-[12px] leading-relaxed ${
+                      isSelected ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+                    }`}>
+                      {ans.sub}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

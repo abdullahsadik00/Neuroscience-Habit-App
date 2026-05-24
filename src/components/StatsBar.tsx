@@ -1,14 +1,6 @@
 import React from 'react';
 import { TrendingUp, RefreshCw, Flame, Activity, Calendar } from 'lucide-react';
 
-interface Stat {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ReactNode;
-  color: string;
-}
-
 interface Props {
   recoveryRate: number;
   totalComebacks: number;
@@ -18,65 +10,34 @@ interface Props {
   brainScore: number;
 }
 
-export default function StatsBar({
-  recoveryRate,
-  totalComebacks,
-  bestStreak,
-  activeHabits,
-  daysInSystem,
-}: Props) {
-  const stats: Stat[] = [
-    {
-      label: 'Recovery Rate',
-      value: `${recoveryRate}%`,
-      sub: 'comebacks completed',
-      icon: <TrendingUp className="w-4 h-4" />,
-      color: 'text-emerald-400',
-    },
-    {
-      label: 'Comebacks Used',
-      value: totalComebacks,
-      sub: 'total activations',
-      icon: <RefreshCw className="w-4 h-4" />,
-      color: 'text-amber-400',
-    },
-    {
-      label: 'Best Streak',
-      value: `${bestStreak}d`,
-      sub: 'consecutive days',
-      icon: <Flame className="w-4 h-4" />,
-      color: 'text-orange-400',
-    },
-    {
-      label: 'Active Habits',
-      value: activeHabits,
-      sub: 'in your system',
-      icon: <Activity className="w-4 h-4" />,
-      color: 'text-violet-400',
-    },
-    {
-      label: 'Days in System',
-      value: daysInSystem,
-      sub: 'building playbook',
-      icon: <Calendar className="w-4 h-4" />,
-      color: 'text-cyan-400',
-    },
-  ];
+const STATS = (p: Props) => [
+  { label: 'Recovery Rate', value: `${p.recoveryRate}%`, sub: 'comebacks done', icon: TrendingUp, color: 'text-emerald-600 dark:text-emerald-400' },
+  { label: 'Comebacks',     value: p.totalComebacks,    sub: 'total',           icon: RefreshCw,  color: 'text-amber-600 dark:text-amber-400' },
+  { label: 'Best Streak',   value: `${p.bestStreak}d`,  sub: 'consecutive',     icon: Flame,      color: 'text-orange-600 dark:text-orange-400' },
+  { label: 'Habits',        value: p.activeHabits,      sub: 'active',          icon: Activity,   color: 'text-indigo-600 dark:text-indigo-400' },
+  { label: 'Days In',       value: p.daysInSystem,      sub: 'in system',       icon: Calendar,   color: 'text-sky-600 dark:text-sky-400' },
+];
 
+export default function StatsBar(props: Props) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {stats.map((stat) => (
-        <div key={stat.label} className="glass-panel rounded-xl p-4">
-          <div className={`flex items-center gap-1.5 mb-2 ${stat.color}`}>
-            {stat.icon}
-            <span className="text-[10px] font-mono tracking-widest uppercase text-slate-500">
-              {stat.label}
-            </span>
+      {STATS(props).map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <div key={stat.label} className="card-2 p-4 rounded-xl">
+            <div className={`flex items-center gap-1.5 mb-2 ${stat.color}`}>
+              <Icon className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">
+                {stat.label}
+              </span>
+            </div>
+            <div className={`text-[22px] font-bold tracking-tight leading-none ${stat.color}`}>
+              {stat.value}
+            </div>
+            {stat.sub && <div className="text-[11px] text-[color:var(--text-3)] mt-0.5">{stat.sub}</div>}
           </div>
-          <div className={`text-2xl font-bold tracking-tight ${stat.color}`}>{stat.value}</div>
-          {stat.sub && <div className="text-[10px] text-slate-600 mt-0.5">{stat.sub}</div>}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

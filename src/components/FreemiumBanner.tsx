@@ -17,43 +17,28 @@ export default function FreemiumBanner({ comebacksThisMonth, isPro, onUpgrade }:
   const isAtLimit = remaining === 0;
 
   return (
-    <div
-      className={`rounded-xl p-4 border flex items-center justify-between gap-4 ${
-        isAtLimit
-          ? 'bg-rose-900/10 border-rose-800/30'
-          : 'bg-amber-900/10 border-amber-800/20'
-      }`}
-    >
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        <div className={`p-1.5 rounded-lg shrink-0 ${isAtLimit ? 'bg-rose-900/30' : 'bg-amber-900/30'}`}>
-          {isAtLimit ? (
-            <Lock className="w-3.5 h-3.5 text-rose-400" />
-          ) : (
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
-          )}
+    <div className={`card-2 rounded-xl px-4 py-3.5 flex items-center justify-between gap-4 border-l-2 ${
+      isAtLimit ? 'border-l-rose-500' : 'border-l-[color:var(--accent)]'
+    }`}>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className={`p-1.5 rounded-lg shrink-0 ${isAtLimit ? 'bg-rose-50 dark:bg-rose-500/10' : 'bg-[color:var(--accent-s)]'}`}>
+          {isAtLimit
+            ? <Lock className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
+            : <Zap className="w-3.5 h-3.5 text-[color:var(--accent)]" />
+          }
         </div>
         <div>
-          <p className={`text-xs font-semibold ${isAtLimit ? 'text-rose-300' : 'text-amber-300'}`}>
-            {isAtLimit
-              ? 'Free comeback limit reached'
-              : `${remaining} free comeback${remaining !== 1 ? 's' : ''} remaining`}
+          <p className={`text-[12px] font-semibold ${isAtLimit ? 'text-rose-600 dark:text-rose-400' : 'text-[color:var(--text-1)]'}`}>
+            {isAtLimit ? 'Free comeback limit reached' : `${remaining} free comeback${remaining !== 1 ? 's' : ''} remaining`}
           </p>
-          <p className="text-[10px] text-slate-500 mt-0.5">
+          <p className="text-[11px] text-[color:var(--text-3)] mt-0.5">
             {isAtLimit
               ? 'Unlock unlimited comebacks + full recovery analytics'
-              : `${used} of ${FREE_LIMIT} used this month · Full Recovery Engine from $9/mo`}
+              : `${used} of ${FREE_LIMIT} used · Full Recovery Engine from $9/mo`}
           </p>
         </div>
       </div>
-
-      <button
-        onClick={onUpgrade}
-        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all button-pulse ${
-          isAtLimit
-            ? 'bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 border border-rose-700/40'
-            : 'bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-700/30'
-        }`}
-      >
+      <button onClick={onUpgrade} className="btn-secondary shrink-0 px-3 py-1.5 text-[12px] rounded-lg">
         Upgrade
       </button>
     </div>

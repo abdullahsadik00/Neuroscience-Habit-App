@@ -1,48 +1,20 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Neurochemistry } from '../store/useNeuroStore';
 
 interface ChemConfig {
   key: keyof Neurochemistry;
   label: string;
   abbr: string;
-  color: string;
-  glow: string;
+  barColor: string;
   description: string;
 }
 
 const CHEMS: ChemConfig[] = [
-  {
-    key: 'dopamine',
-    label: 'Dopamine',
-    abbr: 'DA',
-    color: 'bg-cyan-400',
-    glow: 'shadow-[0_0_8px_rgba(34,211,238,0.4)]',
-    description: 'Motivation & reward drive',
-  },
-  {
-    key: 'acetylcholine',
-    label: 'Acetylcholine',
-    abbr: 'ACh',
-    color: 'bg-violet-400',
-    glow: 'shadow-[0_0_8px_rgba(167,139,250,0.4)]',
-    description: 'Focus & learning depth',
-  },
-  {
-    key: 'epinephrine',
-    label: 'Epinephrine',
-    abbr: 'EPI',
-    color: 'bg-rose-400',
-    glow: 'shadow-[0_0_8px_rgba(251,113,133,0.4)]',
-    description: 'Stress & urgency signal',
-  },
-  {
-    key: 'gaba',
-    label: 'GABA',
-    abbr: 'GABA',
-    color: 'bg-emerald-400',
-    glow: 'shadow-[0_0_8px_rgba(52,211,153,0.4)]',
-    description: 'Calm & recovery state',
-  },
+  { key: 'dopamine',      label: 'Dopamine',      abbr: 'DA',   barColor: 'bg-sky-400',     description: 'Motivation & reward drive' },
+  { key: 'acetylcholine', label: 'Acetylcholine', abbr: 'ACh',  barColor: 'bg-violet-400',  description: 'Focus & learning depth' },
+  { key: 'epinephrine',   label: 'Epinephrine',   abbr: 'EPI',  barColor: 'bg-rose-400',    description: 'Stress & urgency signal' },
+  { key: 'gaba',          label: 'GABA',          abbr: 'GABA', barColor: 'bg-emerald-400', description: 'Calm & recovery state' },
 ];
 
 export default function NeurochemHUD({ neurochemistry }: { neurochemistry: Neurochemistry }) {
@@ -51,35 +23,34 @@ export default function NeurochemHUD({ neurochemistry }: { neurochemistry: Neuro
       {CHEMS.map((chem) => {
         const value = neurochemistry[chem.key];
         const level = value >= 70 ? 'High' : value >= 40 ? 'Normal' : 'Low';
+        const levelColor = level === 'High'
+          ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+          : level === 'Low'
+          ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
+          : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]';
+
         return (
-          <div
-            key={chem.key}
-            className="glass-panel rounded-xl p-3 group relative overflow-hidden"
-          >
+          <div key={chem.key} className="card-2 p-4 rounded-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">
                 {chem.abbr}
               </span>
-              <span
-                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                  level === 'High'
-                    ? 'bg-emerald-900/40 text-emerald-400'
-                    : level === 'Low'
-                    ? 'bg-rose-900/40 text-rose-400'
-                    : 'bg-slate-800 text-slate-400'
-                }`}
-              >
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${levelColor}`}>
                 {level}
               </span>
             </div>
-            <div className="text-sm font-semibold text-white mb-1">{Math.round(value)}</div>
-            <div className="w-full bg-gray-800 rounded-full h-1.5 mb-2">
-              <div
-                className={`${chem.color} ${chem.glow} h-1.5 rounded-full transition-all duration-700`}
-                style={{ width: `${value}%` }}
+            <div className="text-[22px] font-bold text-[color:var(--text-1)] leading-none mb-2">
+              {Math.round(value)}
+            </div>
+            <div className="h-[3px] progress-track mb-2">
+              <motion.div
+                className={`h-full rounded-full ${chem.barColor}`}
+                initial={false}
+                animate={{ width: `${value}%` }}
+                transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
               />
             </div>
-            <div className="text-[10px] text-slate-500 leading-tight">{chem.description}</div>
+            <div className="text-[11px] text-[color:var(--text-3)] leading-tight">{chem.description}</div>
           </div>
         );
       })}

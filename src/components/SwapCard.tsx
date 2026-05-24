@@ -10,7 +10,10 @@ interface Props {
 }
 
 const FRICTION_LABEL = ['', 'Minimal', 'Light', 'Moderate', 'Strong', 'Maximum'];
-const FRICTION_COLOR = ['', 'text-emerald-400', 'text-cyan-400', 'text-amber-400', 'text-orange-400', 'text-rose-400'];
+const FRICTION_COLOR = [
+  '', 'text-emerald-600 dark:text-emerald-400', 'text-sky-600 dark:text-sky-400',
+  'text-amber-600 dark:text-amber-400', 'text-orange-600 dark:text-orange-400', 'text-rose-600 dark:text-rose-400',
+];
 
 export default function SwapCard({ swap, onUrgeSurf, onSlip }: Props) {
   const today = getLocalDateString(new Date());
@@ -24,26 +27,30 @@ export default function SwapCard({ swap, onUrgeSurf, onSlip }: Props) {
     : null;
 
   return (
-    <div className="glass-panel glass-panel-hover rounded-xl p-5">
-      <div className="flex items-start justify-between mb-3">
+    <div className="card card-hover p-5">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0 pr-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Shield className="w-3.5 h-3.5 text-rose-400" />
-            <span className={`text-[10px] font-semibold ${FRICTION_COLOR[swap.frictionLevel]}`}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Shield className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
+            <span className={`text-[11px] font-semibold ${FRICTION_COLOR[swap.frictionLevel]}`}>
               Friction {FRICTION_LABEL[swap.frictionLevel]}
             </span>
           </div>
-          <h3 className="text-base font-semibold text-white leading-tight">{swap.title}</h3>
-          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-            <span className="text-rose-400/80">Intercept:</span> {swap.interceptAction}
+          <h3 className="text-[15px] font-semibold text-[color:var(--text-1)] leading-snug">{swap.title}</h3>
+          <p className="text-[12px] text-[color:var(--text-3)] mt-0.5 line-clamp-1">
+            <span className="text-rose-500/80 dark:text-rose-400/80">Intercept:</span> {swap.interceptAction}
           </p>
         </div>
         {resistRate !== null && (
           <div className="text-right shrink-0">
-            <div className={`text-xl font-bold font-mono ${resistRate >= 70 ? 'text-emerald-400' : resistRate >= 40 ? 'text-amber-400' : 'text-rose-400'}`}>
+            <div className={`text-[22px] font-bold leading-none ${
+              resistRate >= 70 ? 'text-emerald-600 dark:text-emerald-400'
+              : resistRate >= 40 ? 'text-amber-600 dark:text-amber-400'
+              : 'text-rose-600 dark:text-rose-400'
+            }`}>
               {resistRate}%
             </div>
-            <div className="text-[10px] text-slate-500">resist rate</div>
+            <div className="text-[10px] text-[color:var(--text-3)]">resist rate</div>
           </div>
         )}
       </div>
@@ -51,10 +58,10 @@ export default function SwapCard({ swap, onUrgeSurf, onSlip }: Props) {
       <div className="flex gap-2.5">
         <button
           onClick={() => onUrgeSurf(swap.id)}
-          className={`flex-1 py-2.5 rounded-lg border flex items-center justify-center gap-1.5 text-xs font-semibold transition-all button-pulse ${
+          className={`flex-1 h-10 rounded-xl border flex items-center justify-center gap-1.5 text-[12px] font-semibold transition-all ${
             urgedToday
-              ? 'bg-emerald-900/30 border-emerald-700/40 text-emerald-500'
-              : 'bg-emerald-900/20 hover:bg-emerald-800/40 text-emerald-400 border-emerald-800/40'
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+              : 'bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
           }`}
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -62,7 +69,7 @@ export default function SwapCard({ swap, onUrgeSurf, onSlip }: Props) {
         </button>
         <button
           onClick={() => onSlip(swap.id)}
-          className="flex-1 py-2.5 rounded-lg border border-rose-800/30 bg-rose-900/10 hover:bg-rose-900/30 text-rose-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all button-pulse"
+          className="flex-1 h-10 rounded-xl border bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20 text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all"
         >
           <AlertOctagon className="w-3.5 h-3.5" />
           {slippedToday ? 'Slipped (logged)' : 'Log Slip'}

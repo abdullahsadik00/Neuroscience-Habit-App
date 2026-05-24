@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon } from 'lucide-react';
 import { useNeuroStore } from '../store/useNeuroStore';
-import { Brain, Shield, Plus, Zap, BookOpen, ChevronRight, User } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import ComebackProtocol from '../components/ComebackProtocol';
 import NeurochemHUD from '../components/NeurochemHUD';
 import StatsBar from '../components/StatsBar';
@@ -20,34 +22,29 @@ import {
   getRecoveryInsights,
 } from '../utils/statsHelpers';
 
+const TABS = [
+  { key: 'habits', label: 'Habits', icon: Brain },
+  { key: 'swaps', label: 'Swaps', icon: Shield },
+  { key: 'log', label: 'Activity', icon: BookOpen },
+] as const;
+
+type Tab = typeof TABS[number]['key'];
+
 export default function Dashboard() {
   const {
-    stacks,
-    swaps,
-    logs,
-    comebacks,
-    neurochemistry,
-    dopaminePoints,
-    userProfile,
-    isPro,
-    brainProfile,
-    completeNeuroStack,
-    logUrgeSurf,
-    logSlip,
-    addNeuroStack,
-    addNeuroSwap,
-    acknowledgeComeback,
-    getTodayComebackIds,
-    upgradeToPro,
-    decayNeurochemistry,
+    stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
+    isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
+    addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
   } = useNeuroStore();
+
+  const { theme, toggleTheme } = useTheme();
 
   const [missedStacks, setMissedStacks] = useState(() =>
     getMissedStacks(stacks, getTodayComebackIds())
   );
   const [showComeback, setShowComeback] = useState(missedStacks.length > 0);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'habits' | 'swaps' | 'log'>('habits');
+  const [activeTab, setActiveTab] = useState<Tab>('habits');
 
   useEffect(() => {
     const interval = setInterval(() => decayNeurochemistry(), 60000);
@@ -65,77 +62,66 @@ export default function Dashboard() {
   const insights = getRecoveryInsights(stacks, comebacks, swaps);
 
   const brainScoreColor =
-    brainScore >= 70 ? 'text-emerald-400' : brainScore >= 40 ? 'text-amber-400' : 'text-rose-400';
-  const brainScoreGlow =
-    brainScore >= 70
-      ? 'shadow-[0_0_20px_rgba(52,211,153,0.3)]'
-      : brainScore >= 40
-      ? 'shadow-[0_0_20px_rgba(251,191,36,0.2)]'
-      : 'shadow-[0_0_20px_rgba(251,113,133,0.2)]';
+    brainScore >= 70 ? 'text-emerald-600 dark:text-emerald-400'
+    : brainScore >= 40 ? 'text-amber-600 dark:text-amber-400'
+    : 'text-rose-600 dark:text-rose-400';
 
   return (
-    <div className="min-h-screen bg-gray-950 text-slate-200 font-sans">
-      {/* Background glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-900/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-900/10 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115]">
+      {/* Modals */}
+      {showComeback && missedStacks.length > 0 && (
+        <ComebackProtocol
+          missedStacks={missedStacks}
+          onComplete={(stackId, stackTitle, microActionsCompleted) => {
+            acknowledgeComeback(stackId, stackTitle, microActionsCompleted);
+          }}
+          onDismiss={() => { setShowComeback(false); setMissedStacks([]); }}
+        />
+      )}
+      {showAddModal && (
+        <AddHabitModal
+          onAddStack={addNeuroStack}
+          onAddSwap={addNeuroSwap}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
 
-      <div className="relative max-w-3xl mx-auto px-4 py-6 space-y-6">
-
-        {/* Comeback Protocol overlay */}
-        {showComeback && missedStacks.length > 0 && (
-          <ComebackProtocol
-            missedStacks={missedStacks}
-            onComplete={(stackId, stackTitle, microActionsCompleted) => {
-              acknowledgeComeback(stackId, stackTitle, microActionsCompleted);
-            }}
-            onDismiss={() => {
-              setShowComeback(false);
-              setMissedStacks([]);
-            }}
-          />
-        )}
-
-        {/* Add Habit Modal */}
-        {showAddModal && (
-          <AddHabitModal
-            onAddStack={addNeuroStack}
-            onAddSwap={addNeuroSwap}
-            onClose={() => setShowAddModal(false)}
-          />
-        )}
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
         {/* ── HEADER ── */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">NeuroSync</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight leading-none">
+            <p className="section-header mb-1">NeuroSync</p>
+            <h1 className="text-[26px] font-bold text-[color:var(--text-1)] tracking-tight leading-none">
               Hey, {userProfile.name}
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">{userProfile.role} · Building your playbook</p>
+            <p className="text-[13px] text-[color:var(--text-2)] mt-1">{userProfile.role}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Brain Score */}
-            <div className={`glass-panel rounded-xl px-4 py-2.5 text-center ${brainScoreGlow} transition-all`}>
-              <div className={`text-2xl font-bold font-mono tracking-tight ${brainScoreColor}`}>
+            <div className="card px-4 py-3 text-center min-w-[72px]">
+              <div className={`text-[22px] font-bold tracking-tight leading-none ${brainScoreColor}`}>
                 {brainScore}
               </div>
-              <div className="text-[9px] text-slate-500 font-mono uppercase tracking-wider">Brain Score</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Brain</div>
             </div>
 
-            {/* Dopamine Points */}
-            <div className="glass-panel rounded-xl px-4 py-2.5 text-center border-cyan-800/30">
+            {/* DP Points */}
+            <div className="card px-4 py-3 text-center min-w-[72px]">
               <div className="flex items-center gap-1 justify-center">
-                <Zap className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-xl font-bold font-mono text-cyan-400">{dopaminePoints}</span>
+                <Zap className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                <span className="text-[22px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400">
+                  {dopaminePoints}
+                </span>
               </div>
-              <div className="text-[9px] text-slate-500 font-mono uppercase tracking-wider">DP Points</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Points</div>
             </div>
+
+            {/* Theme toggle */}
+            <button onClick={toggleTheme} className="theme-toggle">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
@@ -146,23 +132,15 @@ export default function Dashboard() {
           onUpgrade={upgradeToPro}
         />
 
-        {/* ── NEUROCHEMISTRY HUD ── */}
+        {/* ── NEUROCHEMISTRY ── */}
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-4 h-px bg-slate-700" />
-            <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Neurochemistry</span>
-            <div className="flex-1 h-px bg-slate-800" />
-          </div>
+          <SectionHeader label="Neurochemistry" />
           <NeurochemHUD neurochemistry={neurochemistry} />
         </section>
 
-        {/* ── STATS BAR ── */}
+        {/* ── STATS ── */}
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-4 h-px bg-slate-700" />
-            <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Your Numbers</span>
-            <div className="flex-1 h-px bg-slate-800" />
-          </div>
+          <SectionHeader label="Your Numbers" />
           <StatsBar
             recoveryRate={recoveryRate}
             totalComebacks={comebacks.length}
@@ -176,11 +154,7 @@ export default function Dashboard() {
         {/* ── BRAIN PROFILE ── */}
         {brainProfile && (
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-4 h-px bg-slate-700" />
-              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Neural Profile</span>
-              <div className="flex-1 h-px bg-slate-800" />
-            </div>
+            <SectionHeader label="Neural Profile" />
             <BrainProfileCard profile={brainProfile} />
           </section>
         )}
@@ -189,221 +163,179 @@ export default function Dashboard() {
         <RecoveryPlaybook comebacks={comebacks} stacks={stacks} insights={insights} />
 
         {/* ── TABS ── */}
-        <div className="flex items-center gap-1 bg-gray-900/60 rounded-xl p-1">
-          <TabButton
-            active={activeTab === 'habits'}
-            onClick={() => setActiveTab('habits')}
-            icon={<Brain className="w-3.5 h-3.5" />}
-            label={`Habits (${activeStacks.length})`}
-          />
-          <TabButton
-            active={activeTab === 'swaps'}
-            onClick={() => setActiveTab('swaps')}
-            icon={<Shield className="w-3.5 h-3.5" />}
-            label={`Swaps (${activeSwaps.length})`}
-          />
-          <TabButton
-            active={activeTab === 'log'}
-            onClick={() => setActiveTab('log')}
-            icon={<BookOpen className="w-3.5 h-3.5" />}
-            label={`Activity Log`}
-          />
+        <div className="card p-1 flex gap-1">
+          {TABS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-semibold transition-all ${
+                activeTab === key
+                  ? 'bg-[color:var(--accent)] text-white shadow-sm'
+                  : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}{key === 'habits' ? ` (${activeStacks.length})` : key === 'swaps' ? ` (${activeSwaps.length})` : ''}
+            </button>
+          ))}
         </div>
 
-        {/* ── HABITS TAB ── */}
-        {activeTab === 'habits' && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Brain className="w-4 h-4 text-indigo-400" />
-                <span className="text-sm font-semibold text-white">Neuro-Stacks</span>
-              </div>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold border border-indigo-500/30 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add habit
-              </button>
-            </div>
-
-            {activeStacks.length === 0 ? (
-              <EmptyState
-                icon={<Brain className="w-8 h-8 text-slate-700" />}
-                title="No habits yet"
-                description="Add your first neuro-stack habit to start building myelination."
-                action="Add your first habit"
-                onAction={() => setShowAddModal(true)}
-              />
-            ) : (
-              <div className="grid gap-3">
-                {activeStacks.map((stack) => (
-                  <HabitCard
-                    key={stack.id}
-                    stack={stack}
-                    comebacks={comebacks}
-                    onComplete={completeNeuroStack}
+        {/* ── TAB CONTENT ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            {activeTab === 'habits' && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <SectionHeader label="Neuro-Stacks" inline />
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[color:var(--accent-s)] hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[12px] font-semibold transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add habit
+                  </button>
+                </div>
+                {activeStacks.length === 0 ? (
+                  <EmptyState
+                    icon="🧠"
+                    title="No habits yet"
+                    description="Add your first neuro-stack to start building myelination."
+                    action="Add your first habit"
+                    onAction={() => setShowAddModal(true)}
                   />
-                ))}
-              </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {activeStacks.map((stack) => (
+                      <HabitCard key={stack.id} stack={stack} comebacks={comebacks} onComplete={completeNeuroStack} />
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
-        )}
 
-        {/* ── SWAPS TAB ── */}
-        {activeTab === 'swaps' && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-rose-400" />
-                <span className="text-sm font-semibold text-white">Friction Protocols</span>
-              </div>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600/10 hover:bg-rose-600/30 text-rose-300 text-xs font-semibold border border-rose-500/20 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add swap
-              </button>
-            </div>
-
-            {activeSwaps.length === 0 ? (
-              <EmptyState
-                icon={<Shield className="w-8 h-8 text-slate-700" />}
-                title="No friction protocols"
-                description="Add a bad habit to intercept and build your resistance protocols."
-                action="Add friction protocol"
-                onAction={() => setShowAddModal(true)}
-              />
-            ) : (
-              <div className="grid gap-3">
-                {activeSwaps.map((swap) => (
-                  <SwapCard
-                    key={swap.id}
-                    swap={swap}
-                    onUrgeSurf={logUrgeSurf}
-                    onSlip={logSlip}
+            {activeTab === 'swaps' && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <SectionHeader label="Friction Protocols" inline />
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[12px] font-semibold transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add swap
+                  </button>
+                </div>
+                {activeSwaps.length === 0 ? (
+                  <EmptyState
+                    icon="🛡️"
+                    title="No friction protocols"
+                    description="Add a bad habit to intercept and build your resistance protocols."
+                    action="Add friction protocol"
+                    onAction={() => setShowAddModal(true)}
                   />
-                ))}
-              </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {activeSwaps.map((swap) => (
+                      <SwapCard key={swap.id} swap={swap} onUrgeSurf={logUrgeSurf} onSlip={logSlip} />
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
-        )}
 
-        {/* ── ACTIVITY LOG TAB ── */}
-        {activeTab === 'log' && (
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-semibold text-white">Activity Log</span>
-            </div>
+            {activeTab === 'log' && (
+              <section>
+                <SectionHeader label="Activity Log" className="mb-4" />
+                {logs.length === 0 ? (
+                  <EmptyState
+                    icon="📖"
+                    title="No activity yet"
+                    description="Complete habits, urge-surf, or log comebacks to see your neural activity here."
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {logs.slice(0, 20).map((log) => {
+                      const cfg = {
+                        completion: { dot: 'bg-emerald-500', label: 'Completed', color: 'text-emerald-600 dark:text-emerald-400' },
+                        urge_surf: { dot: 'bg-sky-500', label: 'Urge Surfed', color: 'text-sky-600 dark:text-sky-400' },
+                        slip: { dot: 'bg-rose-500', label: 'Slip', color: 'text-rose-600 dark:text-rose-400' },
+                        comeback: { dot: 'bg-amber-500', label: 'Comeback', color: 'text-amber-600 dark:text-amber-400' },
+                      }[log.type] ?? { dot: 'bg-[color:var(--text-3)]', label: log.type, color: 'text-[color:var(--text-2)]' };
 
-            {logs.length === 0 ? (
-              <EmptyState
-                icon={<BookOpen className="w-8 h-8 text-slate-700" />}
-                title="No activity yet"
-                description="Complete habits, urge-surf, or log comebacks to see your neural activity here."
-              />
-            ) : (
-              <div className="space-y-2">
-                {logs.slice(0, 20).map((log) => {
-                  const typeConfig = {
-                    completion: { color: 'text-emerald-400', bg: 'bg-emerald-900/20 border-emerald-800/20', label: 'Completed' },
-                    urge_surf: { color: 'text-cyan-400', bg: 'bg-cyan-900/20 border-cyan-800/20', label: 'Urge Surfed' },
-                    slip: { color: 'text-rose-400', bg: 'bg-rose-900/20 border-rose-800/20', label: 'Slip' },
-                    comeback: { color: 'text-amber-400', bg: 'bg-amber-900/20 border-amber-800/20', label: 'Comeback' },
-                  }[log.type] ?? { color: 'text-slate-400', bg: 'bg-gray-900/40 border-gray-800/20', label: log.type };
-
-                  return (
-                    <div key={log.id} className={`flex items-start justify-between gap-3 p-3 rounded-lg border ${typeConfig.bg}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className={`text-[10px] font-semibold ${typeConfig.color}`}>{typeConfig.label}</span>
-                          <span className="text-[10px] text-slate-600 font-mono">
-                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
+                      return (
+                        <div key={log.id} className="card-2 px-4 py-3 flex items-start justify-between gap-3 rounded-xl">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mt-1.5 shrink-0`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className={`text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span>
+                                <span className="text-[11px] text-[color:var(--text-3)]">
+                                  {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="text-[13px] text-[color:var(--text-1)] truncate">{log.itemTitle}</p>
+                            </div>
+                          </div>
+                          {log.dopamineChange !== 0 && (
+                            <span className={`text-[11px] font-semibold shrink-0 ${log.dopamineChange > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                              {log.dopamineChange > 0 ? '+' : ''}{log.dopamineChange}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-300 truncate">{log.itemTitle}</p>
-                        {log.notes && (
-                          <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{log.notes}</p>
-                        )}
-                      </div>
-                      {log.dopamineChange !== 0 && (
-                        <span className={`text-[10px] font-mono font-semibold shrink-0 ${log.dopamineChange > 0 ? 'text-cyan-400' : 'text-rose-400'}`}>
-                          {log.dopamineChange > 0 ? '+' : ''}{log.dopamineChange} DA
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
-        )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Footer */}
-        <div className="text-center py-4">
-          <p className="text-[10px] text-slate-700 font-mono">
-            NeuroSync · Every comeback strengthens your playbook
-          </p>
-        </div>
+        <p className="text-center text-[11px] text-[color:var(--text-3)] py-2">
+          Every comeback strengthens your playbook
+        </p>
       </div>
     </div>
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
+function SectionHeader({ label, inline, className }: { label: string; inline?: boolean; className?: string }) {
+  if (inline) {
+    return <p className={`section-header ${className ?? ''}`}>{label}</p>;
+  }
   return (
-    <button
-      onClick={onClick}
-      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-        active
-          ? 'bg-white/10 text-white shadow-sm'
-          : 'text-slate-500 hover:text-slate-300'
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
+    <div className={`flex items-center gap-3 mb-4 ${className ?? ''}`}>
+      <p className="section-header">{label}</p>
+      <div className="flex-1 h-px bg-[color:var(--border)]" />
+    </div>
   );
 }
 
 function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  onAction,
+  icon, title, description, action, onAction,
 }: {
-  icon: React.ReactNode;
+  icon: string;
   title: string;
   description: string;
   action?: string;
   onAction?: () => void;
 }) {
   return (
-    <div className="glass-panel rounded-xl py-12 flex flex-col items-center text-center">
-      <div className="mb-3">{icon}</div>
-      <p className="text-sm font-semibold text-slate-400 mb-1">{title}</p>
-      <p className="text-xs text-slate-600 max-w-xs">{description}</p>
+    <div className="card py-12 flex flex-col items-center text-center">
+      <div className="text-3xl mb-3">{icon}</div>
+      <p className="text-[14px] font-semibold text-[color:var(--text-1)] mb-1">{title}</p>
+      <p className="text-[13px] text-[color:var(--text-2)] max-w-xs leading-relaxed">{description}</p>
       {action && onAction && (
-        <button
-          onClick={onAction}
-          className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold border border-indigo-500/30 transition-all"
-        >
+        <button onClick={onAction} className="btn-primary mt-5 px-5 py-2.5 text-[13px]">
           <Plus className="w-3.5 h-3.5" />
           {action}
-          <ChevronRight className="w-3 h-3" />
         </button>
       )}
     </div>

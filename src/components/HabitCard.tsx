@@ -1,22 +1,17 @@
 import React from 'react';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
 import { getWeekGrid } from '../utils/statsHelpers';
 import { getDaysMissed } from '../utils/comebackHelpers';
 import WeeklyGrid from './WeeklyGrid';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  focus: 'text-violet-400 bg-violet-900/20 border-violet-800/30',
-  wellness: 'text-emerald-400 bg-emerald-900/20 border-emerald-800/30',
-  mindset: 'text-cyan-400 bg-cyan-900/20 border-cyan-800/30',
-  fitness: 'text-orange-400 bg-orange-900/20 border-orange-800/30',
-};
-
-const MYELIN_COLOR = (level: number) => {
-  if (level >= 70) return 'bg-emerald-400';
-  if (level >= 40) return 'bg-violet-400';
-  return 'bg-cyan-500';
+const CAT_BADGE: Record<string, string> = {
+  focus:    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
+  wellness: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
+  mindset:  'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
+  fitness:  'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
 };
 
 interface Props {
@@ -31,51 +26,49 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
   const completedToday = stack.completions.includes(today);
   const daysMissed = completedToday ? 0 : getDaysMissed(stack);
   const isMissed = daysMissed > 1;
-  const catStyle = CATEGORY_COLORS[stack.category] ?? 'text-slate-400 bg-slate-800/30 border-slate-700/30';
+  const catStyle = CAT_BADGE[stack.category] ?? 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]';
 
   return (
-    <div
-      className={`glass-panel glass-panel-hover rounded-xl p-5 transition-all ${
-        completedToday ? 'border-emerald-800/30' : isMissed ? 'border-amber-800/30' : ''
-      }`}
-    >
+    <div className={`card card-hover p-5 ${completedToday ? 'ring-1 ring-emerald-200 dark:ring-emerald-500/20' : ''}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0 pr-3">
-          <div className="flex items-center gap-2 mb-1">
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${catStyle}`}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${catStyle}`}>
               {stack.category}
             </span>
             {completedToday && (
-              <span className="text-[10px] text-emerald-400 font-semibold">Done today</span>
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Done today</span>
             )}
             {isMissed && !completedToday && (
-              <span className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                 <AlertTriangle className="w-3 h-3" />
                 {daysMissed}d gap
               </span>
             )}
           </div>
-          <h3 className="text-base font-semibold text-white leading-tight truncate">{stack.title}</h3>
-          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-            <span className="text-slate-400">Cue:</span> {stack.anchorCue}
+          <h3 className="text-[15px] font-semibold text-[color:var(--text-1)] leading-snug truncate">{stack.title}</h3>
+          <p className="text-[12px] text-[color:var(--text-3)] mt-0.5 line-clamp-1">
+            <span className="text-[color:var(--text-2)]">Cue:</span> {stack.anchorCue}
           </p>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-xl font-bold text-white font-mono">{stack.streak}</div>
-          <div className="text-[10px] text-slate-500">streak</div>
+          <div className="text-[22px] font-bold text-[color:var(--text-1)] leading-none">{stack.streak}</div>
+          <div className="text-[10px] text-[color:var(--text-3)]">streak</div>
         </div>
       </div>
 
       {/* Myelination */}
       <div className="mb-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-[10px] text-slate-500 font-mono tracking-wider uppercase">Myelination</span>
-          <span className="text-[10px] font-mono text-slate-400">{stack.myelinationLevel}%</span>
+        <div className="flex justify-between items-center mb-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">Myelination</span>
+          <span className="text-[10px] font-semibold text-[color:var(--text-2)]">{stack.myelinationLevel}%</span>
         </div>
-        <div className="w-full bg-gray-800 rounded-full h-1">
-          <div
-            className={`${MYELIN_COLOR(stack.myelinationLevel)} h-1 rounded-full transition-all duration-1000`}
-            style={{ width: `${stack.myelinationLevel}%` }}
+        <div className="h-[4px] progress-track">
+          <motion.div
+            className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
+            initial={false}
+            animate={{ width: `${stack.myelinationLevel}%` }}
+            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           />
         </div>
       </div>
@@ -88,10 +81,10 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
       <button
         onClick={() => onComplete(stack.id)}
         disabled={completedToday}
-        className={`w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold transition-all button-pulse ${
+        className={`w-full h-11 rounded-xl flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
           completedToday
-            ? 'bg-emerald-900/20 text-emerald-600 cursor-default border border-emerald-800/30'
-            : 'bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 hover:shadow-[0_0_12px_rgba(99,102,241,0.2)]'
+            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-default'
+            : 'btn-primary'
         }`}
       >
         <CheckCircle2 className="w-4 h-4" />
