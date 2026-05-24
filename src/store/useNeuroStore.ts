@@ -34,7 +34,7 @@ export interface NeuroSwap {
 export interface NeuroLog {
   id: string;
   timestamp: string;
-  type: 'completion' | 'urge_surf' | 'slip';
+  type: 'completion' | 'urge_surf' | 'slip' | 'comeback';
   itemId: string;
   itemTitle: string;
   notes?: string;
@@ -42,6 +42,14 @@ export interface NeuroLog {
   epinephrineChange: number;
   gabaChange: number;
   acetylcholineChange: number;
+}
+
+export interface ComebackRecord {
+  id: string;
+  stackId: string;
+  date: string; // YYYY-MM-DD
+  microActionsCompleted: boolean;
+  completedAt: string; // ISO timestamp
 }
 
 export interface Neurochemistry {
@@ -55,22 +63,27 @@ interface NeuroState {
   stacks: NeuroStack[];
   swaps: NeuroSwap[];
   logs: NeuroLog[];
+  comebacks: ComebackRecord[];
   neurochemistry: Neurochemistry;
   dopaminePoints: number;
-  
+
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
   updateNeuroStack: (id: string, updates: Partial<NeuroStack>) => void;
   deleteNeuroStack: (id: string) => void;
   completeNeuroStack: (id: string, notes?: string) => void;
-  
+
   // Swaps Actions
   addNeuroSwap: (swap: Omit<NeuroSwap, 'id' | 'urgeSurfingCompletions' | 'slips' | 'createdAt' | 'isActive'>) => void;
   updateNeuroSwap: (id: string, updates: Partial<NeuroSwap>) => void;
   deleteNeuroSwap: (id: string) => void;
   logUrgeSurf: (id: string, notes?: string) => void;
   logSlip: (id: string, reflection?: string) => void;
-  
+
+  // Comeback Actions
+  acknowledgeComeback: (stackId: string, stackTitle: string, microActionsCompleted: boolean) => void;
+  getTodayComebackIds: () => string[];
+
   // Global Actions
   decayNeurochemistry: () => void;
   claimDopaminePoints: (amount: number) => void;
@@ -150,6 +163,7 @@ export const useNeuroStore = create<NeuroState>()(
       stacks: INITIAL_STACKS,
       swaps: INITIAL_SWAPS,
       logs: [],
+      comebacks: [],
       neurochemistry: DEFAULT_NEUROCHEMISTRY,
       dopaminePoints: 120,
 
@@ -376,6 +390,54 @@ export const useNeuroStore = create<NeuroState>()(
         });
       },
 
+      // --- COMEBACK ACTIONS ---
+      acknowledgeComeback: (stackId, stackTitle, microActionsCompleted) => {
+        const today = getLocalDateString(new Date());
+        const dopamineBoost = microActionsCompleted ? 20 : 10;
+
+        const record: ComebackRecord = {
+          id: `comeback-${Date.now()}`,
+          stackId,
+          date: today,
+          microActionsCompleted,
+          completedAt: new Date().toISOString(),
+        };
+
+        const newLog: NeuroLog = {
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          type: 'comeback',
+          itemId: stackId,
+          itemTitle: stackTitle,
+          notes: microActionsCompleted
+            ? 'Activated comeback protocol — micro-actions completed.'
+            : 'Activated comeback protocol — acknowledged failure, ready to continue.',
+          dopamineChange: dopamineBoost,
+          epinephrineChange: -15, // reduces the stress/guilt response
+          gabaChange: 15,         // calming — reduces avoidance activation
+          acetylcholineChange: 10,
+        };
+
+        set((state) => ({
+          comebacks: [record, ...state.comebacks],
+          logs: [newLog, ...state.logs],
+          dopaminePoints: state.dopaminePoints + dopamineBoost,
+          neurochemistry: {
+            dopamine: Math.min(100, state.neurochemistry.dopamine + dopamineBoost),
+            epinephrine: Math.max(0, state.neurochemistry.epinephrine - 15),
+            gaba: Math.min(100, state.neurochemistry.gaba + 15),
+            acetylcholine: Math.min(100, state.neurochemistry.acetylcholine + 10),
+          },
+        }));
+      },
+
+      getTodayComebackIds: () => {
+        const today = getLocalDateString(new Date());
+        return get().comebacks
+          .filter((c) => c.date === today)
+          .map((c) => c.stackId);
+      },
+
       // --- GLOBAL ACTIONS ---
       decayNeurochemistry: () => {
         set((state) => {
@@ -406,8 +468,9 @@ export const useNeuroStore = create<NeuroState>()(
           stacks: [],
           swaps: [],
           logs: [],
+          comebacks: [],
           neurochemistry: { dopamine: 50, acetylcholine: 50, epinephrine: 50, gaba: 50 },
-          dopaminePoints: 0
+          dopaminePoints: 0,
         });
       }
     }),
