@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Comeback Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:               #F6F6F4;
+      --surface:          #FFFFFF;
+      --surface-border:   rgba(0,0,0,0.055);
+      --text-primary:     #111111;
+      --text-secondary:   #6B6B6B;
+      --text-tertiary:    #ABABAB;
+      --accent:           #2B5EE8;
+      --accent-muted:     rgba(43,94,232,0.09);
+      --btn-primary-bg:   #111111;
+      --btn-primary-text: #FFFFFF;
+      --separator:        rgba(0,0,0,0.075);
+      --input-bg:         #F0F0EE;
+      --chip-bg:          #EBEBEA;
+      --chip-text:        #555555;
+      --chip-active-bg:   #111111;
+      --chip-active-text: #FFFFFF;
+      --shadow-sm:        0 1px 2px rgba(0,0,0,0.06), 0 3px 10px rgba(0,0,0,0.05);
+      --action-done-text: #ABABAB;
+    }
+
+    [data-theme="dark"] {
+      --bg:               #0E1116;
+      --surface:          #161B22;
+      --surface-border:   rgba(255,255,255,0.06);
+      --text-primary:     #EDEDED;
+      --text-secondary:   #9AA0A6;
+      --text-tertiary:    #4A5260;
+      --accent:           #4F82FF;
+      --accent-muted:     rgba(79,130,255,0.12);
+      --btn-primary-bg:   #EDEDED;
+      --btn-primary-text: #0E1116;
+      --separator:        rgba(255,255,255,0.07);
+      --input-bg:         #1C2230;
+      --chip-bg:          #1C2230;
+      --chip-text:        #9AA0A6;
+      --chip-active-bg:   #EDEDED;
+      --chip-active-text: #0E1116;
+      --shadow-sm:        0 1px 2px rgba(0,0,0,0.4), 0 3px 10px rgba(0,0,0,0.3);
+      --action-done-text: #3A4250;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+    }
+
+    /* ── PHONE SHELL ── */
+    .shell {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top, 48px) 0 env(safe-area-inset-bottom, 34px);
+      position: relative;
+    }
+
+    @media (min-width: 500px) {
+      body {
+        align-items: center;
+        padding: 48px 24px;
+        background: #DDDBD7;
+      }
+      [data-theme="dark"] body { background: #060A0E; }
+
+      .shell {
+        min-height: unset;
+        height: 844px;
+        border-radius: 48px;
+        box-shadow: 0 60px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.08);
+        overflow: hidden;
+        background: var(--bg);
+        padding-top: 52px;
+        padding-bottom: 40px;
+        transition: background-color 0.3s ease;
+      }
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 0 26px;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .header-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .app-name {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.35px;
+      color: var(--text-primary);
+    }
+
+    .app-tagline {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      letter-spacing: 0;
+    }
+
+    /* ── THEME TOGGLE ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding-top: 2px;
+    }
+
+    .toggle-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      user-select: none;
+    }
+
+    .toggle {
+      width: 42px;
+      height: 24px;
+      background: var(--chip-bg);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.25s ease;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
+    }
+
+    [data-theme="dark"] .toggle::after {
+      transform: translateX(18px);
+      background: var(--accent);
+    }
+
+    /* ── STATE SYSTEM ── */
+    .state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .state.off {
+      display: none;
+    }
+
+    .state.out {
+      animation: stateOut 0.22s ease forwards;
+    }
+
+    .state.in {
+      animation: stateIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    @keyframes stateOut {
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+
+    @keyframes stateIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── INITIAL STATE ── */
+    .initial {
+      padding: 0 26px;
+    }
+
+    .initial-space-top {
+      flex: 1.4;
+      min-height: 48px;
+    }
+
+    .fail-button {
+      display: block;
+      width: 100%;
+      height: 62px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border: none;
+      border-radius: 18px;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.25px;
+      cursor: pointer;
+      transition: opacity 0.12s ease, transform 0.12s ease, background-color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .fail-button:active {
+      opacity: 0.68;
+      transform: scale(0.977);
+    }
+
+    .context-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 15px;
+    }
+
+    .context-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 5px 4px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+
+    .context-btn:hover { color: var(--text-primary); }
+
+    .chevron {
+      width: 13px;
+      height: 13px;
+      transition: transform 0.22s ease;
+    }
+
+    .chevron.flipped { transform: rotate(180deg); }
+
+    /* ── EXPANSION ── */
+    .expand-wrap {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition:
+        max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.22s ease,
+        margin-top 0.22s ease;
+      margin-top: 0;
+    }
+
+    .expand-wrap.open {
+      max-height: 480px;
+      opacity: 1;
+      margin-top: 22px;
+    }
+
+    .expand-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding-bottom: 4px;
+    }
+
+    .field-block { display: flex; flex-direction: column; gap: 7px; }
+
+    .field-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+    }
+
+    .field-input {
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text-primary);
+      background: var(--input-bg);
+      border: none;
+      border-radius: 11px;
+      padding: 12px 14px;
+      resize: none;
+      outline: none;
+      width: 100%;
+      -webkit-appearance: none;
+      transition: background-color 0.3s ease;
+      line-height: 1.5;
+    }
+
+    .field-input::placeholder { color: var(--text-tertiary); }
+
+    .energy-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chip {
+      flex: 1;
+      height: 38px;
+      border-radius: 10px;
+      border: none;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chip.on {
+      background: var(--chip-active-bg);
+      color: var(--chip-active-text);
+    }
+
+    .cta-secondary {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: -0.2px;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cta-secondary:active {
+      opacity: 0.7;
+      transform: scale(0.98);
+    }
+
+    .initial-space-bottom {
+      flex: 1;
+      min-height: 36px;
+    }
+
+    /* ── RECOVERY STATE ── */
+    .recovery {
+      padding: 0 26px;
+    }
+
+    .recovery-top {
+      flex: 0.6;
+      min-height: 32px;
+    }
+
+    .ack-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-muted);
+      border-radius: 100px;
+      padding: 5px 10px 5px 8px;
+      margin-bottom: 26px;
+    }
+
+    .ack-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .ack-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.1px;
+    }
+
+    .reset-headline {
+      font-size: 30px;
+      font-weight: 500;
+      letter-spacing: -0.8px;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .reset-body {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      letter-spacing: -0.1px;
+      margin-bottom: 36px;
+    }
+
+    .rule {
+      height: 1px;
+      background: var(--separator);
+      margin-bottom: 26px;
+    }
+
+    .steps-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      letter-spacing: 0.65px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 38px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.2s ease;
+    }
+
+    .step.done .step-num { color: var(--text-tertiary); }
+    .step.done .step-text {
+      text-decoration: line-through;
+      color: var(--action-done-text);
+    }
+
+    .step-num {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 16px;
+      margin-top: 1.5px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+      transition: color 0.2s ease;
+      user-select: none;
+    }
+
+    .step-text {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.45;
+      letter-spacing: -0.1px;
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+      user-select: none;
+    }
+
+    .restart-btn {
+      width: 100%;
+      height: 62px;
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border: none;
+      border-radius: 18px;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.25px;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: opacity 0.12s ease, transform 0.12s ease, background-color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .restart-btn:active {
+      opacity: 0.68;
+      transform: scale(0.977);
+    }
+
+    .done-btn {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 7px;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+
+    .done-btn:hover { color: var(--text-primary); }
+
+    .recovery-bottom { flex: 1; min-height: 16px; }
+
+    /* ── CONFIRM STATE (post restart) ── */
+    .confirm {
+      padding: 0 26px;
+      text-align: center;
+    }
+
+    .confirm-spacer { flex: 1.5; min-height: 60px; }
+
+    .confirm-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .confirm-headline {
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: -0.6px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .confirm-sub {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      letter-spacing: -0.1px;
+      margin-bottom: 48px;
+    }
+
+    .confirm-reset {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+
+    .confirm-reset:hover { color: var(--accent); }
+
+    .confirm-bottom { flex: 1; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-copy">
+      <span class="app-name">Comeback Protocol</span>
+      <span class="app-tagline">Reset when things break</span>
+    </div>
+    <div class="toggle-wrap">
+      <span class="toggle-label" id="toggleLabel">Dark</span>
+      <button class="toggle" id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════
+       STATE 1 — INITIAL
+  ════════════════════════════════════ -->
+  <div class="state initial" id="stateInitial">
+    <div class="initial-space-top"></div>
+
+    <div class="fail-wrap">
+      <button class="fail-button" id="failBtn">I failed today</button>
+
+      <div class="context-row">
+        <button class="context-btn" id="contextBtn" aria-expanded="false">
+          <span id="contextBtnLabel">Add context</span>
+          <svg class="chevron" id="chevron" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.5 4.5L6.5 8.5L10.5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="expand-wrap" id="expandWrap">
+        <div class="expand-inner">
+          <div class="field-block">
+            <label class="field-label" for="taskInput">What were you trying to do?</label>
+            <textarea class="field-input" id="taskInput" rows="2" placeholder="Morning run, deep work, meditation…"></textarea>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label" for="blockInput">What got in the way?</label>
+            <textarea class="field-input" id="blockInput" rows="2" placeholder="Optional"></textarea>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label">Energy right now</label>
+            <div class="energy-row">
+              <button class="chip" data-energy="low">Low</button>
+              <button class="chip" data-energy="medium">Medium</button>
+              <button class="chip" data-energy="high">High</button>
+            </div>
+          </div>
+
+          <button class="cta-secondary" id="continueBtn">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="initial-space-bottom"></div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       STATE 2 — RECOVERY
+  ════════════════════════════════════ -->
+  <div class="state recovery off" id="stateRecovery">
+    <div class="recovery-top"></div>
+
+    <div class="ack-pill">
+      <div class="ack-dot"></div>
+      <span class="ack-label">Acknowledged</span>
+    </div>
+
+    <h1 class="reset-headline" id="resetHeadline">Nothing is broken.</h1>
+    <p class="reset-body" id="resetBody">You're still in motion. This is a continuation.</p>
+
+    <div class="rule"></div>
+
+    <p class="steps-label">Next 2 minutes</p>
+    <div class="steps-list" id="stepsList"></div>
+
+    <button class="restart-btn" id="restartBtn">Restart now</button>
+    <button class="done-btn" id="doneBtn">Done for today</button>
+
+    <div class="recovery-bottom"></div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       STATE 3 — CONFIRM
+  ════════════════════════════════════ -->
+  <div class="state confirm off" id="stateConfirm">
+    <div class="confirm-spacer"></div>
+
+    <div class="confirm-mark">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4.5 11L9 15.5L17.5 7" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2 class="confirm-headline">You're back.</h2>
+    <p class="confirm-sub">That's the whole thing.<br>Go do the first step.</p>
+
+    <button class="confirm-reset" id="confirmReset">Start over</button>
+    <div class="confirm-bottom"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── THEME ──────────────────────────────────────────────────────────
+  const html     = document.documentElement;
+  const toggle   = document.getElementById('themeToggle');
+  const tlabel   = document.getElementById('toggleLabel');
+  const prefer   = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  if (prefer) { html.setAttribute('data-theme', 'dark'); tlabel.textContent = 'Light'; }
+
+  toggle.addEventListener('click', () => {
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    tlabel.textContent = dark ? 'Dark' : 'Light';
+  });
+
+  // ── CONTEXT EXPAND ─────────────────────────────────────────────────
+  const contextBtn   = document.getElementById('contextBtn');
+  const contextLabel = document.getElementById('contextBtnLabel');
+  const chevron      = document.getElementById('chevron');
+  const expandWrap   = document.getElementById('expandWrap');
+  let contextOpen    = false;
+
+  contextBtn.addEventListener('click', () => {
+    contextOpen = !contextOpen;
+    expandWrap.classList.toggle('open', contextOpen);
+    chevron.classList.toggle('flipped', contextOpen);
+    contextBtn.setAttribute('aria-expanded', contextOpen);
+    contextLabel.textContent = contextOpen ? 'Hide context' : 'Add context';
+  });
+
+  // ── ENERGY CHIPS ───────────────────────────────────────────────────
+  let energy = null;
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+      energy = chip.dataset.energy;
+    });
+  });
+
+  // ── CONTENT BANK ───────────────────────────────────────────────────
+  const messages = [
+    {
+      h: 'Nothing is broken.',
+      b: 'You\'re still in motion. One day is not the pattern — the pattern is everything you\'ve already built.'
+    },
+    {
+      h: 'This is a continuation.',
+      b: 'Not a restart. Not a new attempt. The same path, resumed from exactly where you are.'
+    },
+    {
+      h: 'Missing a day is part of the system.',
+      b: 'Every protocol accounts for gaps. The system doesn\'t break — it just waits for you to return.'
+    },
+  ];
+
+  const steps = {
+    low: [
+      'Drink water. Sit somewhere you can work.',
+      'Open the document or task. Look at it for 60 seconds.',
+      'Write one sentence: what you will do when you feel ready.'
+    ],
+    medium: [
+      'Sit at your workspace now.',
+      'Write the first sentence or first step of the task.',
+      'Set a 5-minute timer. Start when it begins.'
+    ],
+    high: [
+      'Sit down and open the work.',
+      'Do the first action for 10 minutes, nothing else.',
+      'Remove one thing that blocked you today.'
+    ],
+    default: [
+      'Open your laptop and sit for 2 minutes.',
+      'Drink water.',
+      'Write one line of what you will do next.'
+    ]
+  };
+
+  // ── STATE MACHINE ──────────────────────────────────────────────────
+  function go(fromId, toId, delay = 0) {
+    const from = document.getElementById(fromId);
+    const to   = document.getElementById(toId);
+
+    from.classList.add('out');
+
+    setTimeout(() => {
+      from.classList.remove('out');
+      from.classList.add('off');
+      to.classList.remove('off');
+      to.classList.add('in');
+      requestAnimationFrame(() => requestAnimationFrame(() => to.classList.remove('in')));
+    }, 220 + delay);
+  }
+
+  function showRecovery() {
+    const msg  = messages[Math.floor(Math.random() * messages.length)];
+    const acts = steps[energy] || steps.default;
+
+    document.getElementById('resetHeadline').textContent = msg.h;
+    document.getElementById('resetBody').textContent     = msg.b;
+
+    const list = document.getElementById('stepsList');
+    list.innerHTML = '';
+    acts.forEach((text, i) => {
+      const item = document.createElement('div');
+      item.className = 'step';
+      item.innerHTML = `<span class="step-num">${i + 1}</span><span class="step-text">${text}</span>`;
+      item.addEventListener('click', () => item.classList.toggle('done'));
+      list.appendChild(item);
+    });
+
+    go('stateInitial', 'stateRecovery');
+  }
+
+  function resetToInitial() {
+    document.getElementById('taskInput').value  = '';
+    document.getElementById('blockInput').value = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    energy = null;
+    contextOpen = false;
+    expandWrap.classList.remove('open');
+    chevron.classList.remove('flipped');
+    contextLabel.textContent = 'Add context';
+    contextBtn.setAttribute('aria-expanded', false);
+  }
+
+  // ── BUTTONS ────────────────────────────────────────────────────────
+  document.getElementById('failBtn').addEventListener('click', showRecovery);
+  document.getElementById('continueBtn').addEventListener('click', showRecovery);
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    go('stateRecovery', 'stateConfirm');
+  });
+
+  document.getElementById('doneBtn').addEventListener('click', () => {
+    resetToInitial();
+    go('stateRecovery', 'stateInitial');
+  });
+
+  document.getElementById('confirmReset').addEventListener('click', () => {
+    resetToInitial();
+    go('stateConfirm', 'stateInitial');
+  });
+</script>
+</body>
+</html>
