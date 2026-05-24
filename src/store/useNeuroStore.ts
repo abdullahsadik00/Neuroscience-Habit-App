@@ -64,6 +64,17 @@ export interface UserProfile {
   role: string;
 }
 
+export interface CheckinRecord {
+  id: string;
+  date: string;
+  consistency: 1 | 2 | 3 | 4 | 5;
+  weeklyBlocker: string;
+  energyLevel: 'low' | 'normal' | 'high';
+  routineChanged: boolean;
+  routineNote?: string;
+  recalibrationApplied: boolean;
+}
+
 export interface NeuroBrainProfile {
   failureStyle: 'perfectionist' | 'avoider' | 'analyst' | 'drifter';
   peakEnergyWindow: 'morning' | 'afternoon' | 'evening' | 'variable';
@@ -88,6 +99,8 @@ interface NeuroState {
   onboardingComplete: boolean;
   brainProfile: NeuroBrainProfile | null;
   blueprintAccepted: boolean;
+  lastCheckinDate: string | null;
+  checkinHistory: CheckinRecord[];
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -110,6 +123,7 @@ interface NeuroState {
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setBrainProfile: (profile: NeuroBrainProfile) => void;
   acceptBlueprint: () => void;
+  submitCheckin: (record: Omit<CheckinRecord, 'id' | 'recalibrationApplied'>) => void;
   upgradeToPro: () => void;
   completeOnboarding: () => void;
 
@@ -200,6 +214,8 @@ export const useNeuroStore = create<NeuroState>()(
       onboardingComplete: false,
       brainProfile: null,
       blueprintAccepted: false,
+      lastCheckinDate: null,
+      checkinHistory: [],
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -482,6 +498,18 @@ export const useNeuroStore = create<NeuroState>()(
 
       acceptBlueprint: () => {
         set({ blueprintAccepted: true });
+      },
+
+      submitCheckin: (record) => {
+        const full: CheckinRecord = {
+          ...record,
+          id: `checkin-${Date.now()}`,
+          recalibrationApplied: false,
+        };
+        set((state) => ({
+          checkinHistory: [full, ...state.checkinHistory],
+          lastCheckinDate: full.date,
+        }));
       },
 
       upgradeToPro: () => {
