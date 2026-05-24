@@ -390,9 +390,9 @@ RecalibrationSuggestion {
 - [x] **NeuroRoutine Blueprint** — post-assessment screen that auto-assigns 3–5 habits from a profile-scored library. Eliminates blank dashboard. *(System A above)*
 - [x] **Weekly Check-in Protocol** — 60-second 4-question bottom sheet, triggers every 7 days. *(System B above)*
 - [x] **Recalibration Engine** — adjusts habit difficulty/type after each check-in. *(System C above)*
-- [ ] **Comeback Protocol gate** — enforce 3 free/month limit. Show freemium modal on 4th trigger.
+- [x] **Comeback Protocol gate** — enforce 3 free/month limit. Show freemium modal on 4th trigger.
 - [x] **Persistence reliability** — Zustand v2 migration guard handles localStorage schema changes without wiping data.
-- [ ] **Mobile-first layout pass** — verify everything works on 375px. Tab bar should be thumb-reachable.
+- [x] **Mobile-first layout pass** — verify everything works on 375px. Tab bar should be thumb-reachable.
 - [x] **Empty-state habit prompts** — 15 role-personalised habit suggestions (3 per role) shown during onboarding.
 
 ### P2 — Should ship
