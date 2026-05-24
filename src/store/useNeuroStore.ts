@@ -59,6 +59,11 @@ export interface Neurochemistry {
   gaba: number; // 0 - 100, baseline 50
 }
 
+export interface UserProfile {
+  name: string;
+  role: string;
+}
+
 interface NeuroState {
   stacks: NeuroStack[];
   swaps: NeuroSwap[];
@@ -66,6 +71,8 @@ interface NeuroState {
   comebacks: ComebackRecord[];
   neurochemistry: Neurochemistry;
   dopaminePoints: number;
+  userProfile: UserProfile;
+  isPro: boolean;
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -83,6 +90,10 @@ interface NeuroState {
   // Comeback Actions
   acknowledgeComeback: (stackId: string, stackTitle: string, microActionsCompleted: boolean) => void;
   getTodayComebackIds: () => string[];
+
+  // Profile / Pro Actions
+  setUserProfile: (profile: Partial<UserProfile>) => void;
+  upgradeToPro: () => void;
 
   // Global Actions
   decayNeurochemistry: () => void;
@@ -166,6 +177,8 @@ export const useNeuroStore = create<NeuroState>()(
       comebacks: [],
       neurochemistry: DEFAULT_NEUROCHEMISTRY,
       dopaminePoints: 120,
+      userProfile: { name: 'Sadik', role: 'Builder' },
+      isPro: false,
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -436,6 +449,14 @@ export const useNeuroStore = create<NeuroState>()(
         return get().comebacks
           .filter((c) => c.date === today)
           .map((c) => c.stackId);
+      },
+
+      setUserProfile: (profile) => {
+        set((state) => ({ userProfile: { ...state.userProfile, ...profile } }));
+      },
+
+      upgradeToPro: () => {
+        set({ isPro: true });
       },
 
       // --- GLOBAL ACTIONS ---
