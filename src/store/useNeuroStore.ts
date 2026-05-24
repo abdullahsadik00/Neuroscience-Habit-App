@@ -73,6 +73,7 @@ interface NeuroState {
   dopaminePoints: number;
   userProfile: UserProfile;
   isPro: boolean;
+  onboardingComplete: boolean;
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -94,6 +95,7 @@ interface NeuroState {
   // Profile / Pro Actions
   setUserProfile: (profile: Partial<UserProfile>) => void;
   upgradeToPro: () => void;
+  completeOnboarding: () => void;
 
   // Global Actions
   decayNeurochemistry: () => void;
@@ -171,14 +173,15 @@ const INITIAL_SWAPS: NeuroSwap[] = [
 export const useNeuroStore = create<NeuroState>()(
   persist(
     (set, get) => ({
-      stacks: INITIAL_STACKS,
-      swaps: INITIAL_SWAPS,
+      stacks: [],
+      swaps: [],
       logs: [],
       comebacks: [],
       neurochemistry: DEFAULT_NEUROCHEMISTRY,
-      dopaminePoints: 120,
-      userProfile: { name: 'Sadik', role: 'Builder' },
+      dopaminePoints: 0,
+      userProfile: { name: '', role: '' },
       isPro: false,
+      onboardingComplete: false,
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -459,6 +462,10 @@ export const useNeuroStore = create<NeuroState>()(
         set({ isPro: true });
       },
 
+      completeOnboarding: () => {
+        set({ onboardingComplete: true, dopaminePoints: 50 });
+      },
+
       // --- GLOBAL ACTIONS ---
       decayNeurochemistry: () => {
         set((state) => {
@@ -496,7 +503,17 @@ export const useNeuroStore = create<NeuroState>()(
       }
     }),
     {
-      name: 'neuroflow-state-storage', // key in LocalStorage
+      name: 'neuroflow-state-storage',
+      version: 2,
+      migrate: (persisted: unknown, fromVersion: number) => {
+        const state = persisted as Record<string, unknown>;
+        // v0→v2: if user already had habits saved, skip onboarding
+        if (fromVersion < 2) {
+          const stacks = state.stacks as unknown[] | undefined;
+          state.onboardingComplete = Array.isArray(stacks) && stacks.length > 0;
+        }
+        return state;
+      },
     }
   )
 );
