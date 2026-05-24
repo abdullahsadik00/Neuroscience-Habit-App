@@ -1,7 +1,9 @@
 // src/pages/Dashboard.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNeuroStore } from '../store/useNeuroStore';
 import { Brain, Zap, ShieldAlert, CheckCircle2, AlertOctagon } from 'lucide-react';
+import ComebackProtocol from '../components/ComebackProtocol';
+import { getMissedStacks } from '../utils/comebackHelpers';
 
 export default function Dashboard() {
   const {
@@ -12,8 +14,15 @@ export default function Dashboard() {
     completeNeuroStack,
     logUrgeSurf,
     logSlip,
-    decayNeurochemistry
+    decayNeurochemistry,
+    acknowledgeComeback,
+    getTodayComebackIds,
   } = useNeuroStore();
+
+  const [missedStacks, setMissedStacks] = useState(() =>
+    getMissedStacks(stacks, getTodayComebackIds())
+  );
+  const [showComeback, setShowComeback] = useState(missedStacks.length > 0);
 
   // Simulate brain chemistry returning to normal over time
   useEffect(() => {
@@ -25,6 +34,19 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-slate-200 p-6 font-sans">
+
+      {showComeback && missedStacks.length > 0 && (
+        <ComebackProtocol
+          missedStacks={missedStacks}
+          onComplete={(stackId, stackTitle, microActionsCompleted) => {
+            acknowledgeComeback(stackId, stackTitle, microActionsCompleted);
+          }}
+          onDismiss={() => {
+            setShowComeback(false);
+            setMissedStacks([]);
+          }}
+        />
+      )}
 
       {/* HEADER & DOPAMINE POINTS */}
       <div className="flex justify-between items-center mb-8">
