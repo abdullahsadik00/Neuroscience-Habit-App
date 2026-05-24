@@ -81,7 +81,7 @@ export default function RecalibrationSuggestions({ suggestions, onApply, onDismi
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-lg bg-[color:var(--surface)] rounded-t-[28px] shadow-[var(--shadow-modal)] overflow-hidden"
+        className="relative w-full max-w-lg bg-[color:var(--surface)] rounded-t-[28px] shadow-[var(--shadow-modal)] overflow-hidden pb-safe"
       >
         {/* Handle */}
         <div className="flex justify-center pt-4 pb-2">

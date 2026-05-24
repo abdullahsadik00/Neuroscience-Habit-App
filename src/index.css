@@ -70,6 +70,11 @@ html, body, #root {
   padding: 0;
 }
 
+/* iOS safe-area inset for bottom sheets */
+.pb-safe {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
 body {
   font-family: 'Inter', 'SF Pro Display', 'SF Pro Text', system-ui, -apple-system, sans-serif;
   background-color: var(--bg);
