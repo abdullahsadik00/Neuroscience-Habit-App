@@ -21,10 +21,12 @@ const STATS = (p: Props) => [
 export default function StatsBar(props: Props) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {STATS(props).map((stat) => {
+      {STATS(props).map((stat, i) => {
         const Icon = stat.icon;
+        // On xs: 5th item spans both columns to avoid orphaned single card
+        const spanClass = i === 4 ? 'sm:col-span-1 col-span-2' : '';
         return (
-          <div key={stat.label} className="card-2 p-4 rounded-xl">
+          <div key={stat.label} className={`card-2 p-4 rounded-xl ${spanClass}`}>
             <div className={`flex items-center gap-1.5 mb-2 ${stat.color}`}>
               <Icon className="w-3.5 h-3.5" />
               <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">

@@ -50,7 +50,7 @@ export default function NeurochemHUD({ neurochemistry }: { neurochemistry: Neuro
                 transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
               />
             </div>
-            <div className="text-[11px] text-[color:var(--text-3)] leading-tight">{chem.description}</div>
+            <div className="text-[11px] text-[color:var(--text-3)] leading-tight line-clamp-2">{chem.description}</div>
           </div>
         );
       })}

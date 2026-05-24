@@ -14,6 +14,7 @@ import FreemiumBanner from '../components/FreemiumBanner';
 import BrainProfileCard from '../components/BrainProfileCard';
 import WeeklyCheckin from '../components/WeeklyCheckin';
 import RecalibrationSuggestions from '../components/RecalibrationSuggestions';
+import ComebackGateModal from '../components/ComebackGateModal';
 import { runRecalibration } from '../utils/recalibrationEngine';
 import type { RecalibrationSuggestion } from '../store/useNeuroStore';
 import { getMissedStacks } from '../utils/comebackHelpers';
@@ -49,7 +50,13 @@ export default function Dashboard() {
   const [missedStacks, setMissedStacks] = useState(() =>
     getMissedStacks(stacks, getTodayComebackIds())
   );
-  const [showComeback, setShowComeback] = useState(missedStacks.length > 0);
+  const [showComeback, setShowComeback] = useState(() => {
+    const missed = getMissedStacks(stacks, getTodayComebackIds());
+    if (missed.length === 0) return false;
+    const used = getComebacksThisMonth(comebacks);
+    return isPro || used < 3;
+  });
+  const [pendingComebackAfterUpgrade] = useState(missedStacks.length > 0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('habits');
   const [showCheckin, setShowCheckin] = useState(() => {
@@ -58,11 +65,22 @@ export default function Dashboard() {
     return daysSince >= CHECKIN_INTERVAL_DAYS;
   });
   const [recalSuggestions, setRecalSuggestions] = useState<RecalibrationSuggestion[]>([]);
+  const [showComebackGate, setShowComebackGate] = useState(false);
+
+  const FREE_COMEBACK_LIMIT = 3;
 
   useEffect(() => {
     const interval = setInterval(() => decayNeurochemistry(), 60000);
     return () => clearInterval(interval);
   }, [decayNeurochemistry]);
+
+  // On mount: if there are missed stacks but the free limit is hit, show gate instead
+  useEffect(() => {
+    if (missedStacks.length > 0 && !isPro && comebacksThisMonth >= FREE_COMEBACK_LIMIT) {
+      setShowComebackGate(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeStacks = stacks.filter((s) => s.isActive);
   const activeSwaps = swaps.filter((s) => s.isActive);
@@ -115,6 +133,17 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      {/* Comeback gate */}
+      <AnimatePresence>
+        {showComebackGate && (
+          <ComebackGateModal
+            used={comebacksThisMonth}
+            onUpgrade={() => { upgradeToPro(); setShowComebackGate(false); setShowComeback(true); }}
+            onDismiss={() => setShowComebackGate(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Modals */}
       {showComeback && missedStacks.length > 0 && (
         <ComebackProtocol
@@ -136,29 +165,29 @@ export default function Dashboard() {
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
         {/* ── HEADER ── */}
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <p className="section-header mb-1">NeuroSync</p>
-            <h1 className="text-[26px] font-bold text-[color:var(--text-1)] tracking-tight leading-none">
+            <h1 className="text-[22px] sm:text-[26px] font-bold text-[color:var(--text-1)] tracking-tight leading-none truncate">
               Hey, {userProfile.name}
             </h1>
-            <p className="text-[13px] text-[color:var(--text-2)] mt-1">{userProfile.role}</p>
+            <p className="text-[12px] text-[color:var(--text-2)] mt-1 truncate">{userProfile.role}</p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Brain Score */}
-            <div className="card px-4 py-3 text-center min-w-[72px]">
-              <div className={`text-[22px] font-bold tracking-tight leading-none ${brainScoreColor}`}>
+            <div className="card px-3 py-2.5 text-center min-w-[58px]">
+              <div className={`text-[18px] font-bold tracking-tight leading-none ${brainScoreColor}`}>
                 {brainScore}
               </div>
               <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Brain</div>
             </div>
 
             {/* DP Points */}
-            <div className="card px-4 py-3 text-center min-w-[72px]">
-              <div className="flex items-center gap-1 justify-center">
-                <Zap className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-                <span className="text-[22px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400">
+            <div className="card px-3 py-2.5 text-center min-w-[58px]">
+              <div className="flex items-center gap-0.5 justify-center">
+                <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+                <span className="text-[18px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400">
                   {dopaminePoints}
                 </span>
               </div>
@@ -211,20 +240,26 @@ export default function Dashboard() {
 
         {/* ── TABS ── */}
         <div className="card p-1 flex gap-1">
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-semibold transition-all ${
-                activeTab === key
-                  ? 'bg-[color:var(--accent)] text-white shadow-sm'
-                  : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}{key === 'habits' ? ` (${activeStacks.length})` : key === 'swaps' ? ` (${activeSwaps.length})` : ''}
-            </button>
-          ))}
+          {TABS.map(({ key, label, icon: Icon }) => {
+            const count = key === 'habits' ? activeStacks.length : key === 'swaps' ? activeSwaps.length : null;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-semibold transition-all min-w-0 ${
+                  activeTab === key
+                    ? 'bg-[color:var(--accent)] text-white shadow-sm'
+                    : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{label}</span>
+                {count !== null && (
+                  <span className="hidden sm:inline text-[11px] opacity-70">({count})</span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── TAB CONTENT ── */}

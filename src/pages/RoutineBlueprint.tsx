@@ -231,7 +231,7 @@ export default function RoutineBlueprint() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 40 }}
               transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-[color:var(--surface)] rounded-t-[28px] px-6 pt-6 pb-10 max-w-lg mx-auto shadow-[var(--shadow-modal)]"
+              className="fixed bottom-0 left-0 right-0 z-50 bg-[color:var(--surface)] rounded-t-[28px] px-6 pt-6 pb-safe max-w-lg mx-auto shadow-[var(--shadow-modal)]"
             >
               <div className="w-10 h-1 bg-[color:var(--surface-3)] rounded-full mx-auto mb-5" />
               <p className="section-header mb-4">Swap with another habit</p>

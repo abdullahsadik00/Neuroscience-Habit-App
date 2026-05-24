@@ -75,7 +75,7 @@ export default function WeeklyCheckin({ onSubmit, onDismiss }: Props) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-lg bg-[color:var(--surface)] rounded-t-[28px] shadow-[var(--shadow-modal)] overflow-hidden"
+        className="relative w-full max-w-lg bg-[color:var(--surface)] rounded-t-[28px] shadow-[var(--shadow-modal)] overflow-hidden pb-safe"
       >
         {/* Handle */}
         <div className="flex justify-center pt-4 pb-2">
@@ -107,7 +107,7 @@ export default function WeeklyCheckin({ onSubmit, onDismiss }: Props) {
         </div>
 
         {/* Step content */}
-        <div className="px-6 pb-8 min-h-[320px]">
+        <div className="px-6 pb-6 min-h-[300px]">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={step}
