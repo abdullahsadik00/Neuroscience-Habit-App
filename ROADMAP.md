@@ -7,6 +7,184 @@
 
 ---
 
+## Complete App Flow (Current State)
+
+```
+NEW USER
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  ONBOARDING  (4 screens)                                    │
+│                                                             │
+│  Screen 1 — Welcome                                         │
+│    "Your brain is wired for recovery — not perfection."     │
+│    [Get Started →]                                          │
+│                                                             │
+│  Screen 2 — Profile Setup                                   │
+│    Name + Role (Builder / Designer / Athlete / Student)     │
+│    [Continue →]                                             │
+│                                                             │
+│  Screen 3 — First Habit                                     │
+│    Role-personalised suggestions (3 per role, tap to add)  │
+│    Custom habit form (title, anchor cue, action, reward)   │
+│    [Add and Continue →]                                     │
+│                                                             │
+│  Screen 4 — Comeback Protocol Explainer                     │
+│    "You WILL miss days. That's where the real protocol is." │
+│    [Begin your system →] → sets onboardingComplete = true   │
+└─────────────────────────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  BRAIN ASSESSMENT  (NeuroSync Brain)                        │
+│                                                             │
+│  8 questions, one at a time, Typeform-style                 │
+│  Progress dots across top. Tap card → auto-advance.        │
+│                                                             │
+│  Q1  When you miss something, what's your first instinct?  │
+│      → failureStyle: perfectionist | avoider | analyst | drifter
+│                                                             │
+│  Q2  What usually gets you started on a habit?             │
+│      → motivationSource: identity | outcome | process | survival
+│                                                             │
+│  Q3  When is your mental energy highest?                   │
+│      → peakEnergyWindow: morning | afternoon | evening | variable
+│                                                             │
+│  Q4  After a setback, how long do you feel stuck?          │
+│      → recoverySpeed: fast | medium | slow | variable       │
+│                                                             │
+│  Q5  What most often breaks your habits?                   │
+│      → primaryBlocker: energy | overwhelm | distraction | life
+│                                                             │
+│  Q6  What does your inner voice say after missing?         │
+│      → selfTalkPattern: self-critical | avoidant | rational | hopeless
+│                                                             │
+│  Q7  How do you best hold yourself accountable?            │
+│      → accountabilityStyle: tracking | external | systems | none
+│                                                             │
+│  Q8  What do you actually want your habits to do?          │
+│      → coreDriver: feel-better | perform-better | become-someone | survive
+│                                                             │
+│  ── 1.5s processing animation ──                           │
+│                                                             │
+│  PROFILE REVEAL                                             │
+│    Archetype name (16 unique: 4 failureStyles × 4 drivers) │
+│    e.g. "The Driven Perfectionist", "The Comfort Seeker"   │
+│    4 personalised insight cards                             │
+│    Dimension summary grid (6 fields)                       │
+│    [Apply to my system →] → sets brainProfile in store     │
+└─────────────────────────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  DASHBOARD  (Returning user home)                           │
+│                                                             │
+│  HEADER                                                     │
+│    Hey, {name} · {role}                                     │
+│    Brain Score (0–100, colour-coded)                        │
+│    Dopamine Points counter                                   │
+│                                                             │
+│  ── if missed habits exist ──                               │
+│  COMEBACK PROTOCOL OVERLAY                                  │
+│    CBT reframe headline (personalised by failureStyle)      │
+│    Energy-aware micro-actions (by peakEnergyWindow + blocker)
+│    Tap steps to complete → acknowledgeComeback()            │
+│                                                             │
+│  FREEMIUM BANNER                                            │
+│    Free: 3 comebacks/month. Pro: unlimited.                 │
+│                                                             │
+│  NEUROCHEMISTRY HUD                                         │
+│    Dopamine / Acetylcholine / Epinephrine / GABA bars       │
+│    Decay over time, spike on actions                        │
+│                                                             │
+│  STATS BAR                                                  │
+│    Recovery Rate · Comebacks · Best Streak                  │
+│    Active Habits · Days in System · Brain Score             │
+│                                                             │
+│  NEURAL PROFILE CARD (collapsible)                          │
+│    Archetype name + failure style badge                     │
+│    Expandable: 6 dimension values                           │
+│    [Retake assessment] → clears brainProfile → routes back  │
+│                                                             │
+│  RECOVERY PLAYBOOK                                          │
+│    Personal failure pattern history                         │
+│    AI-surfaced recovery insights                            │
+│                                                             │
+│  TABS                                                       │
+│    [Habits] [Swaps] [Activity Log]                          │
+│                                                             │
+│  HABITS TAB                                                 │
+│    HabitCard per stack:                                     │
+│      - Myelination progress bar                             │
+│      - 7-day weekly grid (completions + gaps)               │
+│      - Streak counter                                        │
+│      - [✓ Complete] [↩ Comeback] buttons                   │
+│    Empty state: [+ Add your first habit]                    │
+│    FAB: + Add Habit                                         │
+│                                                             │
+│  SWAPS TAB                                                  │
+│    SwapCard per swap:                                       │
+│      - Bad response description                             │
+│      - Friction steps                                        │
+│      - [Surfed Urge] [Logged Slip] buttons                  │
+│    Empty state: [+ Add your first swap]                     │
+│                                                             │
+│  ACTIVITY LOG TAB                                           │
+│    Timeline of: completions / urge surfs / slips / comebacks│
+│    Dopamine change per event (+/-)                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Personalisation matrix (Brain → App)
+
+| Brain dimension | What it changes in the app |
+|---|---|
+| `failureStyle` | Comeback Protocol reframe tone (perfectionist / avoider / analyst / drifter) |
+| `peakEnergyWindow` | Micro-action set shown in Comeback Protocol (morning / afternoon / evening / variable) |
+| `primaryBlocker` | Micro-action sub-set (energy / overwhelm / distraction / life) |
+| `coreDriver` | Archetype name + profile insight #4 language |
+| `accountabilityStyle` | Profile insight #3 framing |
+| `selfTalkPattern` | Display label in BrainProfileCard |
+| `recoverySpeed` | Profile insight framing (fast recoverer vs slow processor) |
+| `motivationSource` | Profile insight #1 framing |
+
+### State routing logic
+
+```
+App boots
+  └─ onboardingComplete = false  → Onboarding
+  └─ onboardingComplete = true
+       └─ brainProfile = null     → BrainAssessment
+       └─ brainProfile ≠ null     → Dashboard
+```
+
+### Key data model
+
+```typescript
+NeuroBrainProfile {
+  failureStyle:       'perfectionist' | 'avoider' | 'analyst' | 'drifter'
+  peakEnergyWindow:   'morning' | 'afternoon' | 'evening' | 'variable'
+  recoverySpeed:      'fast' | 'medium' | 'slow' | 'variable'
+  primaryBlocker:     'energy' | 'overwhelm' | 'distraction' | 'life'
+  selfTalkPattern:    'self-critical' | 'avoidant' | 'rational' | 'hopeless'
+  motivationSource:   'identity' | 'outcome' | 'process' | 'survival'
+  accountabilityStyle:'tracking' | 'external' | 'systems' | 'none'
+  coreDriver:         'feel-better' | 'perform-better' | 'become-someone' | 'survive'
+  completedAt:        string (ISO timestamp)
+}
+```
+
+16 archetypes derived from `failureStyle × coreDriver`:
+
+| | feel-better | perform-better | become-someone | survive |
+|---|---|---|---|---|
+| **perfectionist** | The Burnt-Out Achiever | The Driven Perfectionist | The Identity Builder | The Pressure Coper |
+| **avoider** | The Comfort Seeker | The Hidden High-Performer | The Reluctant Transformer | The Overwhelmed Avoider |
+| **analyst** | The Thoughtful Optimizer | The Strategic Performer | The Deliberate Builder | The Rational Survivor |
+| **drifter** | The Gentle Restarter | The Latent Performer | The Wandering Visionary | The Day-to-Day Drifter |
+
+---
+
 ## Where We Are Now (v0.1 — MVP Done)
 
 **Shipped:**
@@ -22,6 +200,9 @@
 - Activity Log with dopamine change tracking
 - Zustand v5 + localStorage persistence
 - Dark glass-panel design system
+- **4-screen onboarding flow** (name + role + first habit + comeback explainer)
+- **NeuroSync Brain** — 8-question psychological interview, 16-archetype profile reveal, BrainProfileCard in Dashboard
+- Comeback Protocol personalised by `failureStyle` + `peakEnergyWindow` + `primaryBlocker`
 
 **Stack:** React 19 + TypeScript + Vite 8 + Tailwind CSS v4 + Zustand v5 + lucide-react
 
@@ -33,11 +214,11 @@
 
 ### P1 — Must ship
 
-- [ ] **User onboarding flow** — 3-screen setup: name/role, add first habit, explain the Comeback Protocol. No blank-state first launch.
+- [x] **User onboarding flow** — 4-screen setup: name/role, add first habit, explain the Comeback Protocol. No blank-state first launch.
 - [ ] **Comeback Protocol gate** — enforce 3 free/month limit. Show freemium modal on 4th trigger.
-- [ ] **Persistence reliability** — add migration guard so localStorage schema changes don't wipe data silently.
+- [x] **Persistence reliability** — Zustand v2 migration guard handles localStorage schema changes without wiping data.
 - [ ] **Mobile-first layout pass** — verify everything works on 375px. Tab bar should be thumb-reachable.
-- [ ] **Empty-state habit prompts** — pre-fill 3 suggested habits by archetype (Builder, Athlete, Student) during onboarding.
+- [x] **Empty-state habit prompts** — 15 role-personalised habit suggestions (3 per role) shown during onboarding.
 
 ### P2 — Should ship
 
@@ -153,11 +334,11 @@ These are hypotheses, not commitments. Revisit after Phase 4 data.
 ## Technical Debt & Infrastructure
 
 Before Phase 2 launch:
-- [ ] Add `.nvmrc` file pinning Node `20.19.0`
+- [x] Add `.nvmrc` file pinning Node `20.19.0`
 - [ ] Set up CI (GitHub Actions) — type check + build on every PR
 - [ ] Add Sentry for error tracking (free tier)
 - [ ] Add PostHog for product analytics (free tier, self-hostable)
-- [ ] Write a migration helper for Zustand `persist` schema versioning
+- [x] Write a migration helper for Zustand `persist` schema versioning
 - [ ] Add Playwright smoke test: load app → complete a habit → activate comeback protocol
 
 ---
