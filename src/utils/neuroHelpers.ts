@@ -50,19 +50,20 @@ export function getLocalDateString(date: Date): string {
 }
 
 /**
- * Computes myelination percentage.
- * Myelination represents the thickness of the insulating myelin sheath surrounding the nerve fiber.
- * Scientifically, myelination increases with high repetition, deep attention (acetylcholine), and consistency.
- * In our system:
- * - Each completion adds 3% myelination base.
- * - An active streak adds a streak bonus (streak * 1.5%).
- * - Fully completed 21-day streaks lock it at 100% representing an "automatic" neural pathway.
- * - Minimum is 0%, maximum is 100%.
+ * Computes neural pathway strength (called "myelination" in the UI as an accessible metaphor).
+ *
+ * Research basis: Lally et al. (2010) found habit automaticity takes 18–254 days (median ~66).
+ * The primary biological mechanism is basal ganglia LTP (Graybiel), with myelination as a real
+ * but secondary contributor to signal speed. "100%" means "well-established" — not fully automatic,
+ * which varies by person and behavior complexity.
+ *
+ * Formula: reaches ~50% at ~33 completions, ~85% base at ~57 completions, 100% requires
+ * sustained streak on top — roughly matching Lally's median 66-day finding.
  */
 export function calculateMyelination(completionsCount: number, streak: number): number {
   if (completionsCount === 0) return 0;
-  const base = completionsCount * 4; // 25 completions for 100%
-  const streakBonus = streak * 2.5; // High consistency speeds up myelination
+  const base = Math.min(85, completionsCount * 1.5);
+  const streakBonus = Math.min(15, streak * 1.5);
   return Math.min(100, Math.round(base + streakBonus));
 }
 

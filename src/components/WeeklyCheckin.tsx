@@ -10,7 +10,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-const STEPS = 4;
+const STEPS = 5;
 
 const BLOCKER_OPTIONS = [
   { value: 'energy',       label: 'Low energy',     sub: 'Didn't have the fuel when it was time' },
@@ -136,10 +136,16 @@ export default function WeeklyCheckin({ onSubmit, onDismiss }: Props) {
                 />
               )}
               {step === 3 && (
-                <StepRoutine
-                  changed={draft.routineChanged ?? false}
+                <StepContext
+                  changed={draft.contextChanged ?? false}
                   note={draft.routineNote ?? ''}
-                  onSubmit={(changed, note) => next({ routineChanged: changed, routineNote: note })}
+                  onSubmit={(changed, note) => next({ contextChanged: changed, routineChanged: changed, routineNote: note })}
+                />
+              )}
+              {step === 4 && (
+                <StepFailureMode
+                  value={draft.currentFailureMode ?? null}
+                  onSubmit={(v) => next({ currentFailureMode: v })}
                 />
               )}
             </motion.div>
@@ -278,8 +284,10 @@ function StepEnergy({ value, onSelect }: { value: string; onSelect: (v: string) 
   );
 }
 
-// ── Step 4: Routine changes ───────────────────────────────────────────────────
-function StepRoutine({
+// ── Step 4: Context / environment change ─────────────────────────────────────
+// Per Wendy Wood's research: location/context change is the #1 predictor of
+// habit disruption — asking specifically about environment surfaces this signal.
+function StepContext({
   changed, note, onSubmit,
 }: {
   changed: boolean;
@@ -292,10 +300,10 @@ function StepRoutine({
   return (
     <div>
       <h2 className="text-[20px] font-semibold text-[color:var(--text-1)] leading-snug tracking-tight mb-1">
-        Any big changes to your routine?
+        Did your environment change this week?
       </h2>
       <p className="text-[13px] text-[color:var(--text-2)] mb-5">
-        Travel, new job, illness, family — anything that shifted your baseline.
+        Travel, moved desk, new schedule, illness, or anything that shifted your physical context. Environment change is the #1 predictor of habit disruption.
       </p>
       <div className="flex gap-3 mb-5">
         {[false, true].map((val) => (
@@ -337,6 +345,86 @@ function StepRoutine({
       <button
         onClick={() => onSubmit(localChanged, localNote)}
         className="btn-primary w-full h-12"
+      >
+        Continue
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+// ── Step 5: Failure mode this week ────────────────────────────────────────────
+// Failure styles can shift week-to-week. This step captures the current mode
+// so recalibration can adapt — rather than relying solely on the one-time
+// brain assessment result.
+const FAILURE_MODE_OPTIONS = [
+  {
+    value: 'perfectionist' as const,
+    label: 'Perfectionist',
+    sub: 'Missed because it wasn't the "right" time or I wasn't ready',
+  },
+  {
+    value: 'avoider' as const,
+    label: 'Avoider',
+    sub: 'Felt resistance or discomfort and found a reason to skip',
+  },
+  {
+    value: 'analyst' as const,
+    label: 'Analyst',
+    sub: 'Overthought it, second-guessed myself, or got stuck planning',
+  },
+  {
+    value: 'drifter' as const,
+    label: 'Drifter',
+    sub: 'Got distracted, lost track of time, or it slipped my mind',
+  },
+];
+
+function StepFailureMode({
+  value,
+  onSubmit,
+}: {
+  value: string | null;
+  onSubmit: (v: 'perfectionist' | 'avoider' | 'analyst' | 'drifter') => void;
+}) {
+  const [selected, setSelected] = useState<string | null>(value);
+
+  return (
+    <div>
+      <h2 className="text-[20px] font-semibold text-[color:var(--text-1)] leading-snug tracking-tight mb-1">
+        How did you mostly slip up this week?
+      </h2>
+      <p className="text-[13px] text-[color:var(--text-2)] mb-5">
+        Your failure pattern can shift week to week. This helps recalibrate your comeback strategy.
+      </p>
+      <div className="flex flex-col gap-2.5 mb-5">
+        {FAILURE_MODE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setSelected(opt.value)}
+            className={`w-full text-left card p-4 transition-all ${
+              selected === opt.value
+                ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                : 'card-hover'
+            }`}
+          >
+            <p className={`text-[14px] font-semibold leading-snug mb-0.5 ${
+              selected === opt.value ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+            }`}>
+              {opt.label}
+            </p>
+            <p className={`text-[12px] ${
+              selected === opt.value ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+            }`}>
+              {opt.sub}
+            </p>
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => selected && onSubmit(selected as 'perfectionist' | 'avoider' | 'analyst' | 'drifter')}
+        disabled={!selected}
+        className="btn-primary w-full h-12 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         Submit check-in
         <ChevronRight className="w-4 h-4" />

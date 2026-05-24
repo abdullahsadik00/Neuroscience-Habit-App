@@ -60,8 +60,16 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
       {/* Myelination */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">Myelination</span>
-          <span className="text-[10px] font-semibold text-[color:var(--text-2)]">{stack.myelinationLevel}%</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">Neural Pathway</span>
+          <span className="text-[10px] font-semibold text-[color:var(--text-2)]">
+            {stack.myelinationLevel}%
+            {' · '}
+            {stack.myelinationLevel >= 86 ? 'Well-established'
+              : stack.myelinationLevel >= 66 ? 'Established'
+              : stack.myelinationLevel >= 41 ? 'Strengthening'
+              : stack.myelinationLevel >= 21 ? 'Building'
+              : 'Forming'}
+          </span>
         </div>
         <div className="h-[4px] progress-track">
           <motion.div
