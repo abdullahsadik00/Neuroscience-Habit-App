@@ -234,7 +234,7 @@ App boots
 
 ---
 
-## System A — NeuroRoutine Blueprint
+## System A — NeuroRoutine Blueprint ✅
 
 **What:** After the brain profile reveal, instead of a blank dashboard, show a personalised starter routine of 3–5 habits auto-selected from a curated library of 40+ templates. User reviews, swaps, or removes before confirming.
 
@@ -277,7 +277,7 @@ HabitTemplate {
 
 ---
 
-## System B — Weekly Check-in Protocol
+## System B — Weekly Check-in Protocol ✅
 
 **What:** Every 7 days, when the user opens the Dashboard, a bottom sheet appears with 4 questions (60 seconds total). Answers are stored and feed into the Recalibration Engine.
 
@@ -313,7 +313,7 @@ CheckinRecord {
 
 ---
 
-## System C — Recalibration Engine
+## System C — Recalibration Engine ✅
 
 **What:** A pure-logic utility that runs after each check-in. Reads `checkinHistory` + habit completion data and returns a list of suggested adjustments. User approves or rejects each one.
 
@@ -387,9 +387,9 @@ RecalibrationSuggestion {
 ### P1 — Must ship
 
 - [x] **User onboarding flow** — 4-screen setup: name/role, add first habit, explain the Comeback Protocol. No blank-state first launch.
-- [ ] **NeuroRoutine Blueprint** — post-assessment screen that auto-assigns 3–5 habits from a profile-scored library. Eliminates blank dashboard. *(System A above)*
-- [ ] **Weekly Check-in Protocol** — 60-second 4-question bottom sheet, triggers every 7 days. *(System B above)*
-- [ ] **Recalibration Engine** — adjusts habit difficulty/type after each check-in. *(System C above)*
+- [x] **NeuroRoutine Blueprint** — post-assessment screen that auto-assigns 3–5 habits from a profile-scored library. Eliminates blank dashboard. *(System A above)*
+- [x] **Weekly Check-in Protocol** — 60-second 4-question bottom sheet, triggers every 7 days. *(System B above)*
+- [x] **Recalibration Engine** — adjusts habit difficulty/type after each check-in. *(System C above)*
 - [ ] **Comeback Protocol gate** — enforce 3 free/month limit. Show freemium modal on 4th trigger.
 - [x] **Persistence reliability** — Zustand v2 migration guard handles localStorage schema changes without wiping data.
 - [ ] **Mobile-first layout pass** — verify everything works on 375px. Tab bar should be thumb-reachable.
