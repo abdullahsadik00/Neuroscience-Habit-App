@@ -12,6 +12,7 @@ import RecoveryPlaybook from '../components/RecoveryPlaybook';
 import AddHabitModal from '../components/AddHabitModal';
 import FreemiumBanner from '../components/FreemiumBanner';
 import BrainProfileCard from '../components/BrainProfileCard';
+import WeeklyCheckin from '../components/WeeklyCheckin';
 import { getMissedStacks } from '../utils/comebackHelpers';
 import {
   calcRecoveryRate,
@@ -21,6 +22,8 @@ import {
   getComebacksThisMonth,
   getRecoveryInsights,
 } from '../utils/statsHelpers';
+
+const CHECKIN_INTERVAL_DAYS = 7;
 
 const TABS = [
   { key: 'habits', label: 'Habits', icon: Brain },
@@ -35,6 +38,7 @@ export default function Dashboard() {
     stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
     addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
+    lastCheckinDate, submitCheckin,
   } = useNeuroStore();
 
   const { theme, toggleTheme } = useTheme();
@@ -45,6 +49,11 @@ export default function Dashboard() {
   const [showComeback, setShowComeback] = useState(missedStacks.length > 0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('habits');
+  const [showCheckin, setShowCheckin] = useState(() => {
+    if (!lastCheckinDate) return true;
+    const daysSince = (Date.now() - new Date(lastCheckinDate).getTime()) / 86_400_000;
+    return daysSince >= CHECKIN_INTERVAL_DAYS;
+  });
 
   useEffect(() => {
     const interval = setInterval(() => decayNeurochemistry(), 60000);
@@ -68,6 +77,19 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115]">
+      {/* Weekly Check-in */}
+      <AnimatePresence>
+        {showCheckin && (
+          <WeeklyCheckin
+            onSubmit={(record) => {
+              submitCheckin(record);
+              setShowCheckin(false);
+            }}
+            onDismiss={() => setShowCheckin(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Modals */}
       {showComeback && missedStacks.length > 0 && (
         <ComebackProtocol
