@@ -208,6 +208,178 @@ NeuroBrainProfile {
 
 ---
 
+## Adaptive Brain Loop — Core Vision
+
+> **The system should understand you, assign what to do, watch what happens, ask how it's going, then update itself.**
+
+This is the gap between v0.1 and a product that actually rewires behaviour. Three systems need to be built to close it:
+
+| Gap | Current state | What we're building |
+|---|---|---|
+| Profile → assigned habits | User manually adds their own | NeuroRoutine Blueprint (auto-assigned starter pack) |
+| Periodic check-in | Nothing | Weekly Check-in Protocol (60-second feedback) |
+| Adapt tasks to reality | Static habits never change | Recalibration Engine (adjusts after each check-in) |
+
+### Updated state routing
+
+```
+App boots
+  └─ onboardingComplete = false         → Onboarding
+  └─ onboardingComplete = true
+       └─ brainProfile = null            → BrainAssessment
+       └─ blueprintAccepted = false      → RoutineBlueprint        ← NEW
+       └─ daysSinceCheckin >= 7          → WeeklyCheckin overlay   ← NEW
+       └─ default                        → Dashboard
+```
+
+---
+
+## System A — NeuroRoutine Blueprint
+
+**What:** After the brain profile reveal, instead of a blank dashboard, show a personalised starter routine of 3–5 habits auto-selected from a curated library of 40+ templates. User reviews, swaps, or removes before confirming.
+
+**Why it matters:** The current blank-state problem kills activation. Users who see a personalised plan on day 1 are far more likely to return on day 2.
+
+**New files:**
+- `src/pages/RoutineBlueprint.tsx` — full-screen review UI, card per assigned habit with swap/remove
+- `src/data/habitLibrary.ts` — 40+ `HabitTemplate` objects tagged by profile dimensions
+- `src/utils/blueprintEngine.ts` — scoring function: given a `NeuroBrainProfile`, returns top 3–5 ranked habits
+
+**New data model:**
+```typescript
+HabitTemplate {
+  id: string
+  title: string
+  cue: string
+  category: 'morning' | 'focus' | 'recovery' | 'evening'
+  energyRequired: 'low' | 'medium' | 'high'
+  duration: '2min' | '5min' | '15min' | '30min'
+  tags: {
+    failureStyle?: string[]
+    primaryBlocker?: string[]
+    peakEnergyWindow?: string[]
+    coreDriver?: string[]
+  }
+  liteVersion?: string  // ID of lower-intensity variant
+}
+```
+
+**New store field:** `blueprintAccepted: boolean` (default `false`)
+
+**Scoring logic in `blueprintEngine.ts`:**
+- +3 pts if habit tag matches user's `peakEnergyWindow`
+- +2 pts if habit tag matches user's `primaryBlocker` mitigation
+- +2 pts if habit tag matches user's `coreDriver`
+- +1 pt if habit tag matches user's `failureStyle` recovery pattern
+- Return top 5 by score, ensure at least 1 per category
+
+**Build estimate:** 1 day
+
+---
+
+## System B — Weekly Check-in Protocol
+
+**What:** Every 7 days, when the user opens the Dashboard, a bottom sheet appears with 4 questions (60 seconds total). Answers are stored and feed into the Recalibration Engine.
+
+**New files:**
+- `src/components/WeeklyCheckin.tsx` — bottom sheet, 4-step micro-survey
+- Trigger in `src/pages/Dashboard.tsx` — check `daysSinceLastCheckin >= 7` on mount
+
+**The 4 questions:**
+
+| # | Question | Input type | Maps to |
+|---|---|---|---|
+| 1 | "How consistent were you this week?" | 1–5 tap scale | `consistency` |
+| 2 | "What was your biggest blocker?" | Same options as Brain Q5 | `weeklyBlocker` |
+| 3 | "How's your overall energy been?" | Low / Normal / High tap | `energyLevel` |
+| 4 | "Any big changes to your routine?" | Yes / No (Yes → free text) | `routineChanged` |
+
+**New data model:**
+```typescript
+CheckinRecord {
+  date: string           // ISO timestamp
+  consistency: 1 | 2 | 3 | 4 | 5
+  weeklyBlocker: string
+  energyLevel: 'low' | 'normal' | 'high'
+  routineChanged: boolean
+  routineNote?: string
+  recalibrationApplied: boolean
+}
+```
+
+**New store fields:** `lastCheckinDate: string | null`, `checkinHistory: CheckinRecord[]`
+
+**Build estimate:** 1 day
+
+---
+
+## System C — Recalibration Engine
+
+**What:** A pure-logic utility that runs after each check-in. Reads `checkinHistory` + habit completion data and returns a list of suggested adjustments. User approves or rejects each one.
+
+**New files:**
+- `src/utils/recalibrationEngine.ts` — pure function, no side effects
+- `src/components/RecalibrationSuggestions.tsx` — shown after check-in if suggestions exist
+
+**Three adjustment types the engine can produce:**
+
+```
+SCALE_DOWN   — habit has <40% completion for 2+ weeks
+               → suggest swapping to liteVersion from habitLibrary
+               → e.g. "30-min deep work" → "10-min deep work"
+
+REPLACE      — habit has 0% completion for 14 days
+               → suggest a replacement from habitLibrary (same category, different tags)
+               → old habit archived, not deleted
+
+UPDATE_MICRO — weeklyBlocker changed vs Brain Assessment primaryBlocker
+               → update micro-action set used in Comeback Protocol
+               → e.g. blocker was "energy", now "distraction" → swap action set
+```
+
+**Recalibration record:**
+```typescript
+RecalibrationEvent {
+  date: string
+  trigger: 'weekly-checkin'
+  suggestions: RecalibrationSuggestion[]
+  accepted: string[]   // suggestion IDs user approved
+  rejected: string[]
+}
+
+RecalibrationSuggestion {
+  id: string
+  type: 'SCALE_DOWN' | 'REPLACE' | 'UPDATE_MICRO'
+  habitId?: string
+  reason: string        // shown to user, plain English
+  fromValue: string
+  toValue: string
+}
+```
+
+**New store fields:** `recalibrationLog: RecalibrationEvent[]`
+
+**Build estimate:** 1 day for engine + 0.5 day for suggestions UI
+
+---
+
+## Build order for the adaptive loop
+
+| Order | System | File(s) | Est. |
+|---|---|---|---|
+| 1 | Habit library data | `src/data/habitLibrary.ts` | 2h |
+| 2 | Blueprint scoring engine | `src/utils/blueprintEngine.ts` | 1h |
+| 3 | RoutineBlueprint screen | `src/pages/RoutineBlueprint.tsx` | 4h |
+| 4 | Store fields + routing | `src/store/useNeuroStore.ts`, `src/App.tsx` | 1h |
+| 5 | WeeklyCheckin component | `src/components/WeeklyCheckin.tsx` | 3h |
+| 6 | Dashboard check-in trigger | `src/pages/Dashboard.tsx` | 1h |
+| 7 | Recalibration engine | `src/utils/recalibrationEngine.ts` | 3h |
+| 8 | RecalibrationSuggestions UI | `src/components/RecalibrationSuggestions.tsx` | 2h |
+
+**Total: ~3.5 days** for the complete adaptive loop.
+
+---
+
 ## Phase 1 — Alpha Polish (Weeks 1–2)
 
 **Goal:** Make the core loop feel real enough to test with 5–10 people.
@@ -215,6 +387,9 @@ NeuroBrainProfile {
 ### P1 — Must ship
 
 - [x] **User onboarding flow** — 4-screen setup: name/role, add first habit, explain the Comeback Protocol. No blank-state first launch.
+- [ ] **NeuroRoutine Blueprint** — post-assessment screen that auto-assigns 3–5 habits from a profile-scored library. Eliminates blank dashboard. *(System A above)*
+- [ ] **Weekly Check-in Protocol** — 60-second 4-question bottom sheet, triggers every 7 days. *(System B above)*
+- [ ] **Recalibration Engine** — adjusts habit difficulty/type after each check-in. *(System C above)*
 - [ ] **Comeback Protocol gate** — enforce 3 free/month limit. Show freemium modal on 4th trigger.
 - [x] **Persistence reliability** — Zustand v2 migration guard handles localStorage schema changes without wiping data.
 - [ ] **Mobile-first layout pass** — verify everything works on 375px. Tab bar should be thumb-reachable.
