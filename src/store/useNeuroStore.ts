@@ -64,6 +64,18 @@ export interface UserProfile {
   role: string;
 }
 
+export interface NeuroBrainProfile {
+  failureStyle: 'perfectionist' | 'avoider' | 'analyst' | 'drifter';
+  peakEnergyWindow: 'morning' | 'afternoon' | 'evening' | 'variable';
+  recoverySpeed: 'fast' | 'medium' | 'slow' | 'variable';
+  primaryBlocker: 'energy' | 'overwhelm' | 'distraction' | 'life';
+  selfTalkPattern: 'self-critical' | 'avoidant' | 'rational' | 'hopeless';
+  motivationSource: 'identity' | 'outcome' | 'process' | 'survival';
+  accountabilityStyle: 'tracking' | 'external' | 'systems' | 'none';
+  coreDriver: 'feel-better' | 'perform-better' | 'become-someone' | 'survive';
+  completedAt: string;
+}
+
 interface NeuroState {
   stacks: NeuroStack[];
   swaps: NeuroSwap[];
@@ -74,6 +86,7 @@ interface NeuroState {
   userProfile: UserProfile;
   isPro: boolean;
   onboardingComplete: boolean;
+  brainProfile: NeuroBrainProfile | null;
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
@@ -94,6 +107,7 @@ interface NeuroState {
 
   // Profile / Pro Actions
   setUserProfile: (profile: Partial<UserProfile>) => void;
+  setBrainProfile: (profile: NeuroBrainProfile) => void;
   upgradeToPro: () => void;
   completeOnboarding: () => void;
 
@@ -182,6 +196,7 @@ export const useNeuroStore = create<NeuroState>()(
       userProfile: { name: '', role: '' },
       isPro: false,
       onboardingComplete: false,
+      brainProfile: null,
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -456,6 +471,10 @@ export const useNeuroStore = create<NeuroState>()(
 
       setUserProfile: (profile) => {
         set((state) => ({ userProfile: { ...state.userProfile, ...profile } }));
+      },
+
+      setBrainProfile: (profile) => {
+        set({ brainProfile: profile });
       },
 
       upgradeToPro: () => {

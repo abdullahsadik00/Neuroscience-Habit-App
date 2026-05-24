@@ -9,6 +9,7 @@ import SwapCard from '../components/SwapCard';
 import RecoveryPlaybook from '../components/RecoveryPlaybook';
 import AddHabitModal from '../components/AddHabitModal';
 import FreemiumBanner from '../components/FreemiumBanner';
+import BrainProfileCard from '../components/BrainProfileCard';
 import { getMissedStacks } from '../utils/comebackHelpers';
 import {
   calcRecoveryRate,
@@ -29,6 +30,7 @@ export default function Dashboard() {
     dopaminePoints,
     userProfile,
     isPro,
+    brainProfile,
     completeNeuroStack,
     logUrgeSurf,
     logSlip,
@@ -170,6 +172,18 @@ export default function Dashboard() {
             brainScore={brainScore}
           />
         </section>
+
+        {/* ── BRAIN PROFILE ── */}
+        {brainProfile && (
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-4 h-px bg-slate-700" />
+              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Neural Profile</span>
+              <div className="flex-1 h-px bg-slate-800" />
+            </div>
+            <BrainProfileCard profile={brainProfile} />
+          </section>
+        )}
 
         {/* ── RECOVERY PLAYBOOK ── */}
         <RecoveryPlaybook comebacks={comebacks} stacks={stacks} insights={insights} />
