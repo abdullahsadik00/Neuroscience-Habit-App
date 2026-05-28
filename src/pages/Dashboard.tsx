@@ -15,6 +15,7 @@ import BrainProfileCard from '../components/BrainProfileCard';
 import WeeklyCheckin from '../components/WeeklyCheckin';
 import RecalibrationSuggestions from '../components/RecalibrationSuggestions';
 import ComebackGateModal from '../components/ComebackGateModal';
+import MilestoneCelebration from '../components/MilestoneCelebration';
 import { runRecalibration } from '../utils/recalibrationEngine';
 import type { RecalibrationSuggestion } from '../store/useNeuroStore';
 import { getMissedStacks } from '../utils/comebackHelpers';
@@ -95,6 +96,7 @@ export default function Dashboard() {
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
     addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
     lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration, updateNeuroStack,
+    pendingMilestone, clearMilestone,
   } = useNeuroStore();
 
   const { theme, toggleTheme } = useTheme();
@@ -215,6 +217,13 @@ export default function Dashboard() {
           onClose={() => setShowAddModal(false)}
         />
       )}
+
+      {/* Myelination milestone celebration */}
+      <AnimatePresence>
+        {pendingMilestone && (
+          <MilestoneCelebration event={pendingMilestone} onDismiss={clearMilestone} />
+        )}
+      </AnimatePresence>
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 

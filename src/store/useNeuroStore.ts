@@ -100,6 +100,20 @@ export interface RecalibrationEvent {
   rejected: string[];
 }
 
+export interface MilestoneEvent {
+  habitTitle: string;
+  milestone: 10 | 25 | 50 | 75 | 100;
+  stageName: string;
+}
+
+const MILESTONE_STAGES: Record<number, string> = {
+  10:  'Pathway forming',
+  25:  'Building momentum',
+  50:  'Halfway myelinated',
+  75:  'Strengthening fast',
+  100: 'Well-established',
+};
+
 export interface NeuroBrainProfile {
   failureStyle: 'perfectionist' | 'avoider' | 'analyst' | 'drifter';
   peakEnergyWindow: 'morning' | 'afternoon' | 'evening' | 'variable';
@@ -127,12 +141,14 @@ interface NeuroState {
   lastCheckinDate: string | null;
   checkinHistory: CheckinRecord[];
   recalibrationLog: RecalibrationEvent[];
+  pendingMilestone: MilestoneEvent | null;
 
   // Stacks Actions
   addNeuroStack: (stack: Omit<NeuroStack, 'id' | 'myelinationLevel' | 'streak' | 'completions' | 'createdAt' | 'isActive'>) => void;
   updateNeuroStack: (id: string, updates: Partial<NeuroStack>) => void;
   deleteNeuroStack: (id: string) => void;
   completeNeuroStack: (id: string, notes?: string) => void;
+  clearMilestone: () => void;
 
   // Swaps Actions
   addNeuroSwap: (swap: Omit<NeuroSwap, 'id' | 'urgeSurfingCompletions' | 'slips' | 'createdAt' | 'isActive'>) => void;
@@ -244,6 +260,7 @@ export const useNeuroStore = create<NeuroState>()(
       lastCheckinDate: null,
       checkinHistory: [],
       recalibrationLog: [],
+      pendingMilestone: null,
 
       // --- STACKS ACTIONS ---
       addNeuroStack: (stack) => {
@@ -279,36 +296,45 @@ export const useNeuroStore = create<NeuroState>()(
         const todayStr = getLocalDateString(new Date());
         let dopamineAward = 25;
         let acetylcholineAward = 20;
+        const MILESTONES = [10, 25, 50, 75, 100] as const;
 
         set((state) => {
+          const completedStack = state.stacks.find((s) => s.id === id);
+          if (!completedStack) return {};
+
           const updatedStacks = state.stacks.map((stack) => {
             if (stack.id !== id) return stack;
-            
-            // Avoid duplicate daily completions for calculation safety
+
             const alreadyCompletedToday = stack.completions.includes(todayStr);
-            const completions = alreadyCompletedToday 
-              ? stack.completions 
+            const completions = alreadyCompletedToday
+              ? stack.completions
               : [...stack.completions, todayStr];
-            
+
             const streak = calculateStreak(completions);
             const myelinationLevel = calculateMyelination(completions.length, streak);
 
-            // Double reward if they are maintaining a long streak
             if (streak > 5) {
               dopamineAward = 40;
               acetylcholineAward = 30;
             }
 
-            return {
-              ...stack,
-              completions,
-              streak,
-              myelinationLevel
-            };
+            return { ...stack, completions, streak, myelinationLevel };
           });
 
-          const completedStack = state.stacks.find((s) => s.id === id);
-          if (!completedStack) return {};
+          // Detect milestone crossing
+          const oldLevel = completedStack.myelinationLevel;
+          const updatedStack = updatedStacks.find((s) => s.id === id)!;
+          const newLevel = updatedStack.myelinationLevel;
+          const crossedMilestone = MILESTONES.find((m) => oldLevel < m && newLevel >= m) ?? null;
+          const pendingMilestone: MilestoneEvent | null = crossedMilestone
+            ? { habitTitle: completedStack.title, milestone: crossedMilestone, stageName: MILESTONE_STAGES[crossedMilestone] }
+            : null;
+
+          // Milestone bonus dopamine
+          if (crossedMilestone) {
+            dopamineAward += 20;
+            acetylcholineAward += 15;
+          }
 
           const newLog: NeuroLog = {
             id: `log-${Date.now()}`,
@@ -318,7 +344,7 @@ export const useNeuroStore = create<NeuroState>()(
             itemTitle: completedStack.title,
             notes,
             dopamineChange: dopamineAward,
-            epinephrineChange: 5, // completing tasks gives a slight alert energy kick
+            epinephrineChange: 5,
             gabaChange: 0,
             acetylcholineChange: acetylcholineAward
           };
@@ -332,10 +358,13 @@ export const useNeuroStore = create<NeuroState>()(
               acetylcholine: Math.min(100, state.neurochemistry.acetylcholine + acetylcholineAward),
               epinephrine: Math.min(100, state.neurochemistry.epinephrine + 5),
               gaba: state.neurochemistry.gaba
-            }
+            },
+            ...(pendingMilestone ? { pendingMilestone } : {}),
           };
         });
       },
+
+      clearMilestone: () => set({ pendingMilestone: null }),
 
       // --- SWAPS ACTIONS ---
       addNeuroSwap: (swap) => {
