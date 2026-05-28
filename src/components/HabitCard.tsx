@@ -1,6 +1,6 @@
-import React from 'react';
-import { CheckCircle2, AlertTriangle, ArrowDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { CheckCircle2, AlertTriangle, ArrowDown, HelpCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
 import { getWeekGrid } from '../utils/statsHelpers';
@@ -21,6 +21,7 @@ interface Props {
 }
 
 export default function HabitCard({ stack, comebacks, onComplete }: Props) {
+  const [showMyelinInfo, setShowMyelinInfo] = useState(false);
   const weekDays = getWeekGrid(stack, comebacks);
   const today = getLocalDateString(new Date());
   const completedToday = stack.completions.includes(today);
@@ -78,7 +79,16 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
       {/* Myelination */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">Neural Pathway</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">Neural Pathway</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowMyelinInfo((v) => !v); }}
+              className="p-0.5 rounded-full hover:bg-[color:var(--surface-2)] transition-colors"
+              aria-label="What is myelination?"
+            >
+              <HelpCircle className="w-3 h-3 text-[color:var(--text-3)]" />
+            </button>
+          </div>
           <span className="text-[10px] font-semibold text-[color:var(--text-2)]">
             {stack.myelinationLevel}%
             {' · '}
@@ -89,7 +99,7 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
               : 'Forming'}
           </span>
         </div>
-        <div className="h-[4px] progress-track">
+        <div className="h-[4px] progress-track mb-2">
           <motion.div
             className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
             initial={false}
@@ -97,6 +107,30 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           />
         </div>
+        <AnimatePresence>
+          {showMyelinInfo && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18 }}
+              className="overflow-hidden"
+            >
+              <div className="card p-3 rounded-lg mt-1 relative">
+                <button
+                  onClick={() => setShowMyelinInfo(false)}
+                  className="absolute top-2 right-2 p-0.5 rounded hover:bg-[color:var(--surface-2)] transition-colors"
+                >
+                  <X className="w-3 h-3 text-[color:var(--text-3)]" />
+                </button>
+                <p className="text-[11px] font-semibold text-indigo-500 dark:text-indigo-400 mb-1">What is myelination?</p>
+                <p className="text-[11px] text-[color:var(--text-2)] leading-relaxed pr-4">
+                  Myelin is a fatty sheath that wraps nerve fibers, speeding signal conduction — the more you repeat a behavior, the faster and more automatic it feels. This bar maps to research by Lally et al. (2010): habit automaticity takes 18–254 days on average, reaching full strength at around 57–66 completions.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Weekly grid */}
