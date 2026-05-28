@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, ArrowDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
@@ -47,15 +47,33 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
             )}
           </div>
           <h3 className="text-[15px] font-semibold text-[color:var(--text-1)] leading-snug truncate">{stack.title}</h3>
-          <p className="text-[12px] text-[color:var(--text-3)] mt-0.5 line-clamp-1">
-            <span className="text-[color:var(--text-2)]">Cue:</span> {stack.anchorCue}
-          </p>
         </div>
         <div className="text-right shrink-0">
           <div className="text-[22px] font-bold text-[color:var(--text-1)] leading-none">{stack.streak}</div>
           <div className="text-[10px] text-[color:var(--text-3)]">streak</div>
         </div>
       </div>
+
+      {/* Implementation Intention — When → Then */}
+      {(stack.anchorCue || stack.action) && (
+        <div className="card-2 p-3 rounded-xl mb-3 space-y-2">
+          {stack.anchorCue && (
+            <div>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)]">When</span>
+              <p className="text-[12px] text-[color:var(--text-2)] leading-snug line-clamp-2 mt-0.5">{stack.anchorCue}</p>
+            </div>
+          )}
+          {stack.anchorCue && stack.action && (
+            <ArrowDown className="w-3 h-3 text-indigo-400 dark:text-indigo-500 mx-auto" />
+          )}
+          {stack.action && (
+            <div>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">I will</span>
+              <p className="text-[12px] font-medium text-[color:var(--text-1)] leading-snug line-clamp-2 mt-0.5">{stack.action}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Myelination */}
       <div className="mb-3">

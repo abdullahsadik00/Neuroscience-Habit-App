@@ -13,9 +13,9 @@ interface Props {
 const STEPS = 5;
 
 const BLOCKER_OPTIONS = [
-  { value: 'energy',       label: 'Low energy',     sub: 'Didn't have the fuel when it was time' },
+  { value: 'energy',       label: 'Low energy',     sub: "Didn't have the fuel when it was time" },
   { value: 'overwhelm',    label: 'Overwhelm',       sub: 'Too many things competing for attention' },
-  { value: 'distraction',  label: 'Distraction',     sub: 'Got pulled away before I started' },
+  { value: 'distraction',  label: 'Distraction',     sub: "Got pulled away before I started" },
   { value: 'life',         label: 'Life events',     sub: 'External circumstances knocked me off' },
 ];
 
@@ -361,7 +361,7 @@ const FAILURE_MODE_OPTIONS = [
   {
     value: 'perfectionist' as const,
     label: 'Perfectionist',
-    sub: 'Missed because it wasn't the "right" time or I wasn't ready',
+    sub: `Missed because it wasn't the "right" time or I wasn't ready`,
   },
   {
     value: 'avoider' as const,
