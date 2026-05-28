@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CheckCircle2, AlertTriangle, ArrowDown, HelpCircle, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { CheckCircle2, AlertTriangle, ArrowDown, HelpCircle, X, MoreVertical, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
 import { getLocalDateString } from '../utils/neuroHelpers';
@@ -18,10 +18,13 @@ interface Props {
   stack: NeuroStack;
   comebacks: ComebackRecord[];
   onComplete: (id: string) => void;
+  onArchive: (id: string) => void;
 }
 
-export default function HabitCard({ stack, comebacks, onComplete }: Props) {
+export default function HabitCard({ stack, comebacks, onComplete, onArchive }: Props) {
   const [showMyelinInfo, setShowMyelinInfo] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const weekDays = getWeekGrid(stack, comebacks);
   const today = getLocalDateString(new Date());
   const completedToday = stack.completions.includes(today);
@@ -29,10 +32,21 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
   const isMissed = daysMissed > 1;
   const catStyle = CAT_BADGE[stack.category] ?? 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]';
 
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMenu]);
+
   return (
     <div className={`card card-hover p-5 ${completedToday ? 'ring-1 ring-emerald-200 dark:ring-emerald-500/20' : ''}`}>
       <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0 pr-3">
+        <div className="flex-1 min-w-0 pr-2">
           <div className="flex items-center gap-2 mb-1.5">
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${catStyle}`}>
               {stack.category}
@@ -49,9 +63,42 @@ export default function HabitCard({ stack, comebacks, onComplete }: Props) {
           </div>
           <h3 className="text-[15px] font-semibold text-[color:var(--text-1)] leading-snug truncate">{stack.title}</h3>
         </div>
-        <div className="text-right shrink-0">
-          <div className="text-[22px] font-bold text-[color:var(--text-1)] leading-none">{stack.streak}</div>
-          <div className="text-[10px] text-[color:var(--text-3)]">streak</div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="text-right">
+            <div className="text-[22px] font-bold text-[color:var(--text-1)] leading-none">{stack.streak}</div>
+            <div className="text-[10px] text-[color:var(--text-3)]">streak</div>
+          </div>
+
+          {/* Kebab menu */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              className="p-1.5 rounded-lg hover:bg-[color:var(--surface-2)] transition-colors"
+              aria-label="Habit options"
+            >
+              <MoreVertical className="w-4 h-4 text-[color:var(--text-3)]" />
+            </button>
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute right-0 top-full mt-1 z-20 card shadow-[var(--shadow-modal)] rounded-xl overflow-hidden min-w-[140px]"
+                >
+                  <button
+                    onClick={() => { setShowMenu(false); onArchive(stack.id); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)] transition-colors"
+                  >
+                    <Archive className="w-3.5 h-3.5 text-[color:var(--text-3)]" />
+                    Archive habit
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 

@@ -76,6 +76,30 @@ export function getDaysInSystem(stacks: NeuroStack[]): number {
   return Math.max(1, Math.floor(diffMs / 86400000));
 }
 
+export function calcComebackStreak(comebacks: ComebackRecord[]): number {
+  if (comebacks.length === 0) return 0;
+
+  const uniqueDates = [...new Set(comebacks.map((c) => c.date))].sort((a, b) => b.localeCompare(a));
+  const today = getLocalDateString(new Date());
+  const yesterday = getLocalDateString(new Date(Date.now() - 86400000));
+
+  if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) return 0;
+
+  let streak = 0;
+  const cursor = new Date(uniqueDates[0]);
+
+  for (const date of uniqueDates) {
+    if (date === getLocalDateString(cursor)) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
 export function getComebacksThisMonth(comebacks: ComebackRecord[]): number {
   const now = new Date();
   const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

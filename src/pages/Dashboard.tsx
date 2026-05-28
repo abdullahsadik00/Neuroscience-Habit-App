@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon } from 'lucide-react';
+import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon, ChevronDown } from 'lucide-react';
 import { useNeuroStore } from '../store/useNeuroStore';
 import { useTheme } from '../contexts/ThemeContext';
 import ComebackProtocol from '../components/ComebackProtocol';
@@ -25,6 +25,7 @@ import {
   getDaysInSystem,
   getComebacksThisMonth,
   getRecoveryInsights,
+  calcComebackStreak,
 } from '../utils/statsHelpers';
 
 const CHECKIN_INTERVAL_DAYS = 7;
@@ -37,12 +38,63 @@ const TABS = [
 
 type Tab = typeof TABS[number]['key'];
 
+function ArchivedSection({
+  stacks,
+  comebacks,
+  onRestore,
+}: {
+  stacks: import('../store/useNeuroStore').NeuroStack[];
+  comebacks: import('../store/useNeuroStore').ComebackRecord[];
+  onRestore: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-4">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 text-[12px] font-semibold text-[color:var(--text-3)] hover:text-[color:var(--text-2)] transition-colors"
+      >
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        Archived habits ({stacks.length})
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-2 mt-3">
+              {stacks.map((stack) => (
+                <div key={stack.id} className="card-2 p-4 rounded-xl flex items-center justify-between gap-3 opacity-60">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-[color:var(--text-1)] truncate">{stack.title}</p>
+                    <p className="text-[11px] text-[color:var(--text-3)] mt-0.5">{stack.myelinationLevel}% myelinated · {stack.completions.length} completions</p>
+                  </div>
+                  <button
+                    onClick={() => onRestore(stack.id)}
+                    className="shrink-0 text-[12px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
+                  >
+                    Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const {
     stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
     addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
-    lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration,
+    lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration, updateNeuroStack,
   } = useNeuroStore();
 
   const { theme, toggleTheme } = useTheme();
@@ -83,6 +135,7 @@ export default function Dashboard() {
   }, []);
 
   const activeStacks = stacks.filter((s) => s.isActive);
+  const archivedStacks = stacks.filter((s) => !s.isActive);
   const activeSwaps = swaps.filter((s) => s.isActive);
 
   const recoveryRate = calcRecoveryRate(comebacks);
@@ -90,6 +143,7 @@ export default function Dashboard() {
   const bestStreak = getBestStreak(stacks);
   const daysInSystem = getDaysInSystem(stacks);
   const comebacksThisMonth = getComebacksThisMonth(comebacks);
+  const comebackStreak = calcComebackStreak(comebacks);
   const insights = getRecoveryInsights(stacks, comebacks, swaps);
 
   const brainScoreColor =
@@ -224,6 +278,7 @@ export default function Dashboard() {
             activeHabits={activeStacks.length}
             daysInSystem={daysInSystem}
             brainScore={brainScore}
+            comebackStreak={comebackStreak}
           />
         </section>
 
@@ -294,9 +349,24 @@ export default function Dashboard() {
                 ) : (
                   <div className="flex flex-col gap-3">
                     {activeStacks.map((stack) => (
-                      <HabitCard key={stack.id} stack={stack} comebacks={comebacks} onComplete={completeNeuroStack} />
+                      <HabitCard
+                        key={stack.id}
+                        stack={stack}
+                        comebacks={comebacks}
+                        onComplete={completeNeuroStack}
+                        onArchive={(id) => updateNeuroStack(id, { isActive: false })}
+                      />
                     ))}
                   </div>
+                )}
+
+                {/* Archived habits */}
+                {archivedStacks.length > 0 && (
+                  <ArchivedSection
+                    stacks={archivedStacks}
+                    comebacks={comebacks}
+                    onRestore={(id) => updateNeuroStack(id, { isActive: true })}
+                  />
                 )}
               </section>
             )}
