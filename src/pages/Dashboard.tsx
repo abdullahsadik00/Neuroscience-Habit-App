@@ -211,7 +211,7 @@ export default function Dashboard() {
         {/* ── NEUROCHEMISTRY ── */}
         <section>
           <SectionHeader label="Neurochemistry" />
-          <NeurochemHUD neurochemistry={neurochemistry} />
+          <NeurochemHUD neurochemistry={neurochemistry} logs={logs} />
         </section>
 
         {/* ── STATS ── */}
