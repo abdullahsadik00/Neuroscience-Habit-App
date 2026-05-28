@@ -106,25 +106,43 @@ export default function AddHabitModal({ onAddStack, onAddSwap, onClose }: Props)
                 />
               </div>
               <div>
-                <label className="ns-label">Anchor cue *</label>
+                <label className="ns-label">Anchor cue — when does it fire? *</label>
                 <input
                   type="text"
                   value={stackDraft.anchorCue}
                   onChange={(e) => setStackDraft({ ...stackDraft, anchorCue: e.target.value })}
-                  placeholder="After I... / When I..."
+                  placeholder="After I pour my morning coffee..."
                   className="ns-input"
                 />
+                <p className="text-[10px] text-[color:var(--text-3)] mt-1.5 leading-snug">
+                  Specific triggers 3× more effective than vague ones. Try: "After I sit at my desk" not "In the morning."
+                </p>
               </div>
               <div>
-                <label className="ns-label">Action (specific behavior)</label>
+                <label className="ns-label">Action — exactly what will you do?</label>
                 <input
                   type="text"
                   value={stackDraft.action}
                   onChange={(e) => setStackDraft({ ...stackDraft, action: e.target.value })}
-                  placeholder="I will..."
+                  placeholder="I will open my notebook and write one sentence..."
                   className="ns-input"
                 />
               </div>
+
+              {/* Live implementation intention preview */}
+              {stackDraft.anchorCue.trim() && stackDraft.action.trim() && (
+                <div className="card-2 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
+                  <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-2">
+                    Your implementation intention
+                  </p>
+                  <p className="text-[13px] text-[color:var(--text-1)] leading-relaxed">
+                    <span className="text-[color:var(--text-3)]">When </span>
+                    <span className="font-medium">{stackDraft.anchorCue.replace(/^(after i |when i |after |when )/i, '')}</span>
+                    <span className="text-[color:var(--text-3)]">, I will </span>
+                    <span className="font-medium">{stackDraft.action.replace(/^(i will |i'll |i )/i, '')}</span>
+                  </p>
+                </div>
+              )}
               <div>
                 <label className="ns-label">Neural reward</label>
                 <input
