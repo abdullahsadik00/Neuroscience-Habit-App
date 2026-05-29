@@ -41,6 +41,7 @@ import '../models/models.dart';
 // Utility functions for computing stats. We use `getWeekGrid()` from here to
 // turn a NeuroStack + comeback history into a simple list of booleans (was each
 // day of the current week completed?).
+import '../utils/neuro_helpers.dart';
 import '../utils/stats_helpers.dart';
 
 // The app's central theme file. Brings in named Color constants (focusColor,
@@ -93,6 +94,11 @@ class HabitCard extends StatelessWidget {
   /// archive list.
   final VoidCallback onArchive;
 
+  /// Optional callback invoked when the user selects "Lite Mode today" from the
+  /// overflow menu. When null, the menu item is hidden (e.g., already active or
+  /// habit already completed today).
+  final VoidCallback? onLiteMode;
+
   /// The `const` constructor allows Flutter to cache and reuse this widget
   /// instance when its inputs haven't changed, improving performance.
   /// `super.key` forwards the optional `key` parameter to the parent class —
@@ -106,6 +112,7 @@ class HabitCard extends StatelessWidget {
     required this.completedToday,
     required this.onComplete,
     required this.onArchive,
+    this.onLiteMode,
   });
 
   // -------------------------------------------------------------------------
@@ -207,6 +214,10 @@ class HabitCard extends StatelessWidget {
     // Look up the display label for this category, defaulting to empty string.
     final label = _catLabels[stack.category] ?? '';
 
+    // Determine if Lite Mode is active for today.
+    final today = getLocalDateString(DateTime.now());
+    final isLiteModeToday = stack.liteModeDates.contains(today);
+
     // Call our utility function to compute which days of the current week
     // this habit was completed (returns a List of day-status objects).
     final weekDays = getWeekGrid(stack, comebacks);
@@ -259,6 +270,27 @@ class HabitCard extends StatelessWidget {
                 ),
               ),
 
+              // Lite Mode badge — shown when the user has activated lite mode today.
+              if (isLiteModeToday) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF38BDF8).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFF38BDF8).withOpacity(0.4)),
+                  ),
+                  child: const Text(
+                    'Lite Mode',
+                    style: TextStyle(
+                      color: Color(0xFF38BDF8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+
               // Spacer pushes everything after it to the far right of the Row,
               // acting like a flexible gap that expands to fill available space.
               const Spacer(),
@@ -288,13 +320,29 @@ class HabitCard extends StatelessWidget {
                 // `onSelected` is called when the user picks a menu item.
                 // `v` is the String `value` of the chosen PopupMenuItem.
                 onSelected: (v) {
-                  if (v == 'archive') onArchive(); // fire the archive callback up to the parent
+                  if (v == 'archive') onArchive();
+                  if (v == 'liteMode') onLiteMode?.call();
                 },
-                // `itemBuilder` is a function that returns the list of menu options.
-                // The `_` parameter (BuildContext) is available but unused here.
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
-                    value: 'archive', // the string passed to onSelected when this is tapped
+                // `itemBuilder` builds the menu items list dynamically so we can
+                // hide the "Lite Mode today" option when it's not applicable.
+                itemBuilder: (_) => [
+                  // "Lite Mode today" — only shown when:
+                  //   - not already in lite mode today
+                  //   - not already completed today
+                  //   - the onLiteMode callback is wired up
+                  if (!isLiteModeToday && !completedToday && onLiteMode != null)
+                    const PopupMenuItem(
+                      value: 'liteMode',
+                      child: Row(
+                        children: [
+                          Icon(Icons.tune, size: 16, color: Color(0xFF38BDF8)),
+                          SizedBox(width: 8),
+                          Text('Lite Mode today'),
+                        ],
+                      ),
+                    ),
+                  const PopupMenuItem(
+                    value: 'archive',
                     child: Row(
                       children: [
                         Icon(Icons.archive_outlined, size: 16),
@@ -466,9 +514,11 @@ class HabitCard extends StatelessWidget {
                 : ElevatedButton.icon(
                     onPressed: onComplete, // fire the parent-supplied callback when tapped
                     icon: const Icon(Icons.check, size: 16), // small checkmark icon inside the button
-                    label: const Text('Complete'),
+                    label: Text(isLiteModeToday ? 'Complete Lite Version' : 'Complete'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: color, // button fill uses this habit's accent color
+                      // Lite mode uses sky blue instead of the category accent color
+                      // to reinforce that this is a downscaled version of the habit.
+                      backgroundColor: isLiteModeToday ? const Color(0xFF0284C7) : color,
                       minimumSize: const Size(double.infinity, 40), // full width, 40px tall
                       textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),

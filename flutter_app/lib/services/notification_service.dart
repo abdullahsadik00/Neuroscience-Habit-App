@@ -140,6 +140,12 @@ class NotificationService {
   /// ID for the recurring 8 PM evening check-in reminder.
   static const _idEveningCheckin = 4;
 
+  /// ID for the pre-covery "evening before worst day" nudge.
+  static const _idPreCoveryEvening = 5;
+
+  /// ID for the pre-covery "morning of worst day" nudge.
+  static const _idPreCoveryMorning = 6;
+
   // ---------------------------------------------------------------------------
   // METHODS
   // ---------------------------------------------------------------------------
@@ -408,6 +414,93 @@ class NotificationService {
     } catch (_) {}
   }
 
+  /// Schedules two proactive "Pre-covery" notifications for the user's worst
+  /// habit day: one the evening before (20:00) and one the morning of (09:00).
+  ///
+  /// This turns the app from reactive (notifying after a miss) to proactive
+  /// (coaching before the predicted miss). The notifications are one-shot and
+  /// replaced on each call, so only the next occurrence is ever pending.
+  ///
+  /// Parameters:
+  ///   [habitTitle] — the name of the habit the user struggles with most.
+  ///   [worstDay]   — abbreviated day name (e.g. "Thu") from FailureSignature.
+  ///
+  /// Returns: `Future<void>`.
+  static Future<void> schedulePreCoveryNudge({
+    required String habitTitle,
+    required String worstDay,
+  }) async {
+    try {
+      // Cancel any previously scheduled pre-covery notifications.
+      await _plugin.cancel(_idPreCoveryEvening);
+      await _plugin.cancel(_idPreCoveryMorning);
+
+      // Map abbreviated day name to Dart weekday integer (1=Mon…7=Sun).
+      const dayMap = {
+        'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4,
+        'Fri': 5, 'Sat': 6, 'Sun': 7,
+      };
+      final targetWeekday = dayMap[worstDay];
+      if (targetWeekday == null) return; // Unknown day name — safe exit.
+
+      final now = tz.TZDateTime.now(tz.local);
+
+      // Find the next occurrence of the target weekday.
+      // We check up to 7 days ahead so we always find the next one.
+      tz.TZDateTime nextWorstDay = tz.TZDateTime(tz.local, now.year, now.month, now.day);
+      for (int i = 0; i <= 7; i++) {
+        if (nextWorstDay.weekday == targetWeekday) break;
+        nextWorstDay = nextWorstDay.add(const Duration(days: 1));
+      }
+
+      // Evening BEFORE the worst day (20:00 the previous day).
+      final eveningBefore = tz.TZDateTime(
+        tz.local,
+        nextWorstDay.year,
+        nextWorstDay.month,
+        nextWorstDay.day,
+        20, 0,
+      ).subtract(const Duration(days: 1));
+
+      // Morning OF the worst day (09:00).
+      final morningOf = tz.TZDateTime(
+        tz.local,
+        nextWorstDay.year,
+        nextWorstDay.month,
+        nextWorstDay.day,
+        9, 0,
+      );
+
+      // Only schedule evening nudge if it's still in the future.
+      if (eveningBefore.isAfter(now)) {
+        await _plugin.zonedSchedule(
+          _idPreCoveryEvening,
+          '🧠 Tomorrow is your toughest day',
+          'Tomorrow is your toughest day for "$habitTitle". Consider making it a Lite Day.',
+          eveningBefore,
+          _details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+
+      // Morning of nudge — schedule if it's still in the future.
+      if (morningOf.isAfter(now)) {
+        await _plugin.zonedSchedule(
+          _idPreCoveryMorning,
+          '⚡ Your kryptonite day — go Lite',
+          '"$habitTitle" is tough on ${worstDay}s. Downscale to Lite Mode now to keep your streak.',
+          morningOf,
+          _details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+    } catch (_) {}
+  }
+
   // ---------------------------------------------------------------------------
   // CANCELLATION METHODS
   // ---------------------------------------------------------------------------
@@ -424,6 +517,15 @@ class NotificationService {
       // If no notification with that ID exists, it does nothing — safe to call
       // unconditionally.
       await _plugin.cancel(_idLossAversion);
+    } catch (_) {}
+  }
+
+  /// Cancels the two pre-covery nudges (evening before + morning of).
+  /// Safe to call even if no pre-covery nudges are currently scheduled.
+  static Future<void> cancelPreCoveryNudges() async {
+    try {
+      await _plugin.cancel(_idPreCoveryEvening);
+      await _plugin.cancel(_idPreCoveryMorning);
     } catch (_) {}
   }
 

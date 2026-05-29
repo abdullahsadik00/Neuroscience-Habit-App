@@ -1,8 +1,8 @@
 # NeuroSync — Product Requirements Document
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** May 2026
-**Status:** Alpha — all core systems shipped
+**Status:** Alpha — core systems shipped + Investor Sprint features added
 
 ---
 
@@ -75,17 +75,69 @@ An 8-question assessment that builds a `NeuroBrainProfile` — a multi-dimension
 - Which micro-action set is shown
 - The user's archetype name (one of 16)
 
-### 3.4 Neurochemistry HUD
+### 3.4 Adaptability Score (Resilience HUD)
 
-A live model of four neurochemicals that shift based on user actions:
-- **Dopamine (DA)** — anticipation and motivation drive; fires *before* the reward, not after (Schultz, 1997 prediction error model)
-- **Acetylcholine (ACh)** — focus and learning depth; gates neuroplasticity; required for memory consolidation
-- **Epinephrine (EPI)** — arousal and urgency signal; flags moments as important; brain uses norepinephrine for the same function internally
-- **GABA** — inhibitory brake on stress circuits; calm and recovery state
+A proprietary 0–1000 Resilience Score that measures behavioral adaptability — the user's ability to recover, downscale, and re-engage rather than abandon. This replaces the Neurochemistry HUD's 4-bar display as the headline metric on the dashboard.
 
-These decay toward baseline (50) over time and spike on specific actions. They are not clinical measurements — they are a motivational model that makes neurochemistry legible.
+**Scoring rules:**
+- +50 per Comeback Protocol with micro-actions completed
+- +20 per Comeback Protocol acknowledged (without micro-actions)
+- +30 per urge surf (NeuroSwap)
+- +15 per Lite Mode activation (chose to downscale instead of skipping)
+- +10 per weekly check-in completed
+
+**Tier labels:** Getting Started (0–99) → Building Resilience (100–299) → Adaptive Performer (300–499) → Recovery Expert (500–699) → Neural Architect (700–899) → Apex Resilience (900–1000)
+
+The score goes UP when the user uses the Comeback Protocol, surfs an urge, or downscales a habit instead of skipping it. It measures growing toughness — not perfect execution. This is the proprietary metric users protect, comparable to Strava's Fitness score or Duolingo's Fluency score.
 
 ### 3.5 Neuro-Swaps
+
+Bad habit interception system (unchanged — see Section 5.9).
+
+### 3.6 Recovery Rate
+
+The primary success metric displayed to users (unchanged — see Section 5.11).
+
+### 3.7 Predictive Pre-covery
+
+Where the Comeback Protocol is reactive (wait for a miss, then trigger), Pre-covery is proactive. The app uses the user's Failure Signature (computed from `failure_analysis.dart`) to predict failures BEFORE they happen.
+
+**Mechanism:**
+- After a habit has ≥14 days of data, the failure analysis engine identifies `worstDayOfWeek` (e.g., "Thursday") — the weekday with the highest miss count.
+- The app schedules two proactive local notifications:
+  - **Evening before** (Wednesday 20:00): *"Tomorrow is your toughest day for [habit]. Consider making it a Lite Day."*
+  - **Morning of** (Thursday 09:00): *"[Habit] is your Thursday kryptonite. Downscale to Lite Mode now to keep your streak."*
+- These notifications are rescheduled whenever new slip data changes the worst-day calculation.
+
+**User value:** The app feels like an executive coach that anticipates failure before it happens, not a disappointed parent who scolds after the fact.
+
+### 3.8 Dynamic Elasticity — Lite Mode Today
+
+Allows users to instantly downscale a habit for today only without permanently recalibrating via the weekly engine. Prevents the miss entirely by lowering the activation energy.
+
+**Mechanism:**
+- Each `NeuroStack` now carries a `liteModeDates: List<String>` field tracking which dates the user chose Lite Mode.
+- On any habit card, the popup menu offers "Lite Mode today" (hidden once already active or completed).
+- Activating Lite Mode:
+  - Adds today's date to `liteModeDates`
+  - Shows a blue "Lite Mode" badge on the card
+  - Changes the Complete button to "Complete Lite Version"
+  - Still awards Resilience Score points (+15) — rewarding self-awareness over skipping
+
+**Psychology:** This teaches that identity consistency (doing SOMETHING) is more important than intensity. The user is rewarded for adaptive behavior, not penalized for a bad-energy day.
+
+### 3.9 Recovery Heatmap
+
+An evolved version of the social share card — a GitHub-style 28-day contribution grid showing comebacks highlighted in gold. The heatmap is shareable as an image.
+
+**Cell states:**
+- **Emerald green** — any habit completed that day
+- **Amber/gold** — comeback protocol activated (the badge of resilience)
+- **Sky blue** — Lite Mode used that day
+- **Dark red** — habit existed but was missed
+- **Subtle dark** — no habits existed yet
+
+**Social hook:** Users share their Recovery Heatmap as *"I had a terrible week, missed 4 days, but my NeuroSync Recovery Rate is 100%. The comeback is stronger than the setback."* — a relatable, shareable flex that turns failure into a badge of honor and acts as an organic acquisition loop.
 
 Bad habit interception system. Each swap has:
 - A defined cue-trigger (when it fires)
@@ -222,7 +274,7 @@ Max-width 2xl container. Mobile-first (375px baseline).
 - Days in System — days since `createdAt` of earliest stack
 - Brain Score — composite
 
-**Neurochemistry HUD:** 4 chemical cards (2×2 grid, 4-col on md). Each: abbreviation, value (0–100), level badge (High/Normal/Low), animated progress bar, description.
+**Resilience HUD:** Arc-based score visualization showing Adaptability Score (0–1000), tier label, and a coaching tip. Replaces the Neurochemistry HUD. Score increases on comebacks, urge surfs, lite mode activations, and check-ins.
 
 **Tabs:** Habits / Swaps / Activity Log. AnimatePresence fade on tab change.
 
@@ -241,6 +293,10 @@ Per-stack card with:
 - **Neural Pathway** progress bar (0–100%) with stage label
 - 7-day weekly grid (completed=emerald, comeback=amber, missed=surface, today=indigo ring)
 - Mark Complete / already-completed state button
+- **Lite Mode Today** (new): available via the 3-dot overflow menu. When activated:
+  - Blue "Lite Mode" badge appears in the header row
+  - Complete button changes to "Complete Lite Version"
+  - Records the date in `liteModeDates` for heatmap and resilience scoring
 
 ### 5.6 Comeback Protocol
 
@@ -345,6 +401,7 @@ NeuroStack {
   myelinationLevel:    number      // 0–100
   streak:              number
   completions:         string[]    // 'YYYY-MM-DD'
+  liteModeDates:       string[]    // 'YYYY-MM-DD' — dates user activated Lite Mode for this habit
   createdAt:           string (ISO)
   isActive:            boolean
 }
@@ -578,24 +635,31 @@ All P1 items shipped. App is functionally complete for first-user testing.
 - Neural pathway strength formula (Lally-aligned, ~66 completions for 100%)
 - Habit library (30+ templates with neurochemTarget tags)
 
-### Phase 2 — Validation Sprint (Weeks 3–6)
+### Phase 2 — Investor Sprint (Complete — May 2026)
+
+**Goal:** Prove the product is an "autonomous behavioral coach," not just a habit tracker.
+
+| Feature | Status |
+|---|---|
+| Predictive Pre-covery (worst-day proactive notifications) | ✅ Shipped |
+| Dynamic Elasticity — Lite Mode Today (instant habit downscaling) | ✅ Shipped |
+| Recovery Heatmap Share Card (28-day GitHub-style grid) | ✅ Shipped |
+| Resilience Score HUD (Adaptability Score replaces fake chemistry bars) | ✅ Shipped |
+
+### Phase 3 — Validation Sprint (Weeks 3–6)
 
 **Goal:** 20 users, 30-day retention data.
 
 | Feature | Priority |
 |---|---|
-| P2: Habit edit/archive (swipe-to-archive, no hard deletes) | High |
-| P2: Neurochemistry tap-to-explain overlay | High |
-| P2: Streak recovery badge in weekly grid | Medium |
-| P2: Accounts + cloud sync (Supabase magic link) | Critical for cross-device |
-| P2: Recovery Playbook v2 (failure signature patterns) | High |
-| P2: Comeback streak metric | Medium |
-| P2: Daily digest push notification (PWA or Capacitor) | Medium |
-| P2: Share card (Brain Score + Recovery Rate image) | Low |
+| P3: Habit edit/archive (swipe-to-archive, no hard deletes) | High |
+| P3: Streak recovery badge in weekly grid | Medium |
+| P3: Accounts + cloud sync (Supabase magic link) | Critical for cross-device |
+| P3: Recovery Playbook v2 (failure signature patterns) | High |
+| P3: Daily digest push notification | Medium |
 | Infra: CI (GitHub Actions — type check + build on PR) | High |
 | Infra: Sentry (error tracking) | Medium |
 | Infra: PostHog (product analytics) | High |
-| Infra: Playwright smoke test | Medium |
 
 ### Phase 3 — Monetisation (Weeks 7–12)
 
