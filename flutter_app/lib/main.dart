@@ -70,11 +70,12 @@ class _LifecycleWrapperState extends State<_LifecycleWrapper> with WidgetsBindin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      // Schedule loss aversion nudge — fires if user doesn't open app for 3 days
+    if (state == AppLifecycleState.paused) {
+      // Schedule loss aversion nudge when app goes to background.
+      // Use paused only — detached fires during engine teardown when the
+      // plugin's context is already null, causing a NullPointerException.
       NotificationService.scheduleLossAversionNudge(daysFromNow: 3);
     } else if (state == AppLifecycleState.resumed) {
-      // Cancel nudge when user comes back
       NotificationService.cancelLossAversionNudge();
     }
   }
