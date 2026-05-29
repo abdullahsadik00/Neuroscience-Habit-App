@@ -22,6 +22,8 @@ class _AddHabitSheetState extends ConsumerState<AddHabitSheet> {
   final _cueCtrl = TextEditingController();
   final _actionCtrl = TextEditingController();
   final _rewardCtrl = TextEditingController();
+  final _whenCtrl = TextEditingController();
+  final _thenCtrl = TextEditingController();
   HabitCategory _customCat = HabitCategory.focus;
 
   @override
@@ -30,6 +32,8 @@ class _AddHabitSheetState extends ConsumerState<AddHabitSheet> {
     _cueCtrl.dispose();
     _actionCtrl.dispose();
     _rewardCtrl.dispose();
+    _whenCtrl.dispose();
+    _thenCtrl.dispose();
     super.dispose();
   }
 
@@ -41,6 +45,8 @@ class _AddHabitSheetState extends ConsumerState<AddHabitSheet> {
       reward: t.reward,
       category: t.category,
       acetylcholineDuration: 10,
+      whenCondition: t.anchorCue,
+      thenAction: t.action,
     );
     Navigator.pop(context);
   }
@@ -54,6 +60,8 @@ class _AddHabitSheetState extends ConsumerState<AddHabitSheet> {
       reward: _rewardCtrl.text.trim(),
       category: _customCat,
       acetylcholineDuration: 10,
+      whenCondition: _whenCtrl.text.trim().isEmpty ? null : _whenCtrl.text.trim(),
+      thenAction: _thenCtrl.text.trim().isEmpty ? null : _thenCtrl.text.trim(),
     );
     Navigator.pop(context);
   }
@@ -199,6 +207,36 @@ class _AddHabitSheetState extends ConsumerState<AddHabitSheet> {
           _Field(label: 'Anchor Cue', controller: _cueCtrl, hint: 'After I...'),
           _Field(label: 'Action', controller: _actionCtrl, hint: 'I will...'),
           _Field(label: 'Reward', controller: _rewardCtrl, hint: 'I will reward myself with...'),
+          const SizedBox(height: 20),
+          // Implementation Intention section
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withOpacity(0.07),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF6366F1).withOpacity(0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.lightbulb_outline, color: Color(0xFF6366F1), size: 16),
+                    const SizedBox(width: 8),
+                    Text('Implementation Intention', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: const Color(0xFF6366F1))),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Triples follow-through (Gollwitzer, 1999). Specify exactly when and what.',
+                  style: TextStyle(fontSize: 11, color: context.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                _Field(label: 'When…', controller: _whenCtrl, hint: 'e.g. I sit down at my desk at 9am'),
+                _Field(label: 'I will…', controller: _thenCtrl, hint: 'e.g. open my task list and work for 25 min'),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           Text('Category', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),

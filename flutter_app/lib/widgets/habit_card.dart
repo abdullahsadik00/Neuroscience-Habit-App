@@ -10,7 +10,7 @@ class HabitCard extends StatelessWidget {
   final List<ComebackRecord> comebacks;
   final bool completedToday;
   final VoidCallback onComplete;
-  final VoidCallback onDelete;
+  final VoidCallback onArchive;
 
   const HabitCard({
     super.key,
@@ -18,7 +18,7 @@ class HabitCard extends StatelessWidget {
     required this.comebacks,
     required this.completedToday,
     required this.onComplete,
-    required this.onDelete,
+    required this.onArchive,
   });
 
   static const _catColors = {
@@ -35,11 +35,44 @@ class HabitCard extends StatelessWidget {
     HabitCategory.fitness: 'Fitness',
   };
 
+  void _showMyelinationInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Neural Pathway Strength'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Myelination is the process by which your brain wraps repeated behaviors in a fatty sheath that makes them faster, more automatic, and less effortful.',
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '"How long does habit formation take? Answering this question: a study of automaticity development" — Lally et al. (2010), European Journal of Social Psychology',
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'The research shows automaticity takes 18–254 days (median ~66). This bar measures your pathway\'s strength based on consistency and streak length.',
+              style: TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = _catColors[stack.category] ?? focusColor;
     final label = _catLabels[stack.category] ?? '';
     final weekDays = getWeekGrid(stack, comebacks);
+    final hasII = stack.whenCondition != null && stack.whenCondition!.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -71,26 +104,75 @@ class HabitCard extends StatelessWidget {
               ],
               PopupMenuButton<String>(
                 iconSize: 18,
-                onSelected: (v) { if (v == 'delete') onDelete(); },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'delete', child: Text('Delete habit')),
+                onSelected: (v) {
+                  if (v == 'archive') onArchive();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: 'archive',
+                    child: Row(
+                      children: [
+                        Icon(Icons.archive_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Archive habit'),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 10),
 
-          // Title
+          // Title & cue
           Text(stack.title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(stack.anchorCue, style: TextStyle(fontSize: 12, color: context.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
 
+          // Implementation Intention panel
+          if (hasII) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.07),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: color.withOpacity(0.2)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lightbulb_outline, color: color, size: 14),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 12, color: context.textSecondary),
+                        children: [
+                          const TextSpan(text: 'When ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: stack.whenCondition!),
+                          const TextSpan(text: ', I will ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: stack.thenAction ?? stack.action),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 12),
 
-          // Myelination bar
+          // Myelination bar with tooltip
           Row(
             children: [
               Text('Neural Pathway', style: TextStyle(fontSize: 11, color: context.textSecondary)),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: () => _showMyelinationInfo(context),
+                child: Icon(Icons.help_outline, size: 13, color: context.textSecondary),
+              ),
               const Spacer(),
               Text('${stack.myelinationLevel.round()}%', style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
             ],
