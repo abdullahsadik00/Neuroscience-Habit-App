@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import '../providers/neuro_provider.dart';
@@ -21,6 +26,7 @@ import '../widgets/weekly_checkin_modal.dart';
 import '../widgets/recalibration_sheet.dart';
 import '../widgets/recovery_playbook.dart';
 import '../widgets/brain_profile_card.dart';
+import '../widgets/share_card.dart';
 import 'upgrade_page.dart';
 
 const _checkinIntervalDays = 7;
@@ -221,7 +227,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
           IconButton(
             icon: const Icon(Icons.ios_share_outlined),
             tooltip: 'Share your stats',
-            onPressed: () => _shareStats(brainScore, comebackStreak, recoveryRate),
+            onPressed: () => _showShareSheet(
+              context,
+              brainScore: brainScore,
+              comebackStreak: comebackStreak,
+              recoveryRate: recoveryRate,
+              bestStreak: bestStreak,
+              archetypeName: state.brainProfile != null
+                  ? _archetypeName(state.brainProfile!)
+                  : null,
+              userName: state.userProfile.name,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.workspace_premium_outlined),
@@ -292,16 +308,50 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     );
   }
 
-  void _shareStats(int brainScore, int comebackStreak, double recoveryRate) {
-    final text = '''My NeuroSync Recovery Stats:
+  static String _archetypeName(NeuroBrainProfile p) {
+    const names = {
+      'perfectionist-feelBetter': 'The Exhausted Achiever',
+      'perfectionist-performBetter': 'The Precision Driver',
+      'perfectionist-becomeSomeone': 'The Identity Builder',
+      'perfectionist-survive': 'The Cornered Perfectionist',
+      'avoider-feelBetter': 'The Comfort Seeker',
+      'avoider-performBetter': 'The Quiet Competitor',
+      'avoider-becomeSomeone': 'The Reluctant Transformer',
+      'avoider-survive': 'The Minimal Risk-Taker',
+      'analyst-feelBetter': 'The Thoughtful Healer',
+      'analyst-performBetter': 'The Systems Optimizer',
+      'analyst-becomeSomeone': 'The Deliberate Builder',
+      'analyst-survive': 'The Calculated Survivor',
+      'drifter-feelBetter': 'The Restless Dreamer',
+      'drifter-performBetter': 'The Inconsistent Sprinter',
+      'drifter-becomeSomeone': 'The Aspiring Self',
+      'drifter-survive': 'The Day-to-Day Navigator',
+    };
+    return names['${p.failureStyle.name}-${p.coreDriver.name}'] ?? 'The Recovery Builder';
+  }
 
-🧠 Brain Score: $brainScore
-↩ Comeback Streak: ${comebackStreak}d
-✅ Recovery Rate: ${recoveryRate.round()}%
-
-Built my neural pathways one comeback at a time.
-Track your habit recovery at neurosync.app''';
-    Share.share(text, subject: 'My NeuroSync Recovery Stats');
+  void _showShareSheet(
+    BuildContext context, {
+    required int brainScore,
+    required int comebackStreak,
+    required double recoveryRate,
+    required int bestStreak,
+    String? archetypeName,
+    String userName = '',
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ShareSheet(
+        brainScore: brainScore,
+        comebackStreak: comebackStreak,
+        recoveryRate: recoveryRate,
+        bestStreak: bestStreak,
+        archetypeName: archetypeName,
+        userName: userName,
+      ),
+    );
   }
 
   String _dayGreeting() {
@@ -631,6 +681,134 @@ class _LogItem extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Share sheet — previews the card, then captures and shares as PNG image
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ShareSheet extends StatefulWidget {
+  final int brainScore;
+  final int comebackStreak;
+  final double recoveryRate;
+  final int bestStreak;
+  final String? archetypeName;
+  final String userName;
+
+  const _ShareSheet({
+    required this.brainScore,
+    required this.comebackStreak,
+    required this.recoveryRate,
+    required this.bestStreak,
+    this.archetypeName,
+    this.userName = '',
+  });
+
+  @override
+  State<_ShareSheet> createState() => _ShareSheetState();
+}
+
+class _ShareSheetState extends State<_ShareSheet> {
+  final _cardKey = GlobalKey();
+  bool _capturing = false;
+
+  Future<void> _captureAndShare() async {
+    setState(() => _capturing = true);
+    try {
+      // Wait one frame so the card is fully rendered at natural size
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final boundary = _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (bytes == null) return;
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/neurosync_stats.png');
+      await file.writeAsBytes(bytes.buffer.asUint8List());
+
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'image/png')],
+        text: 'My NeuroSync recovery stats 🧠',
+      );
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not capture image: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _capturing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(context).dividerColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Text(
+            'Share your stats',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+
+          // Card preview — wrapped in RepaintBoundary for capture
+          Center(
+            child: RepaintBoundary(
+              key: _cardKey,
+              child: ShareCard(
+                brainScore: widget.brainScore,
+                comebackStreak: widget.comebackStreak,
+                recoveryRate: widget.recoveryRate,
+                bestStreak: widget.bestStreak,
+                archetypeName: widget.archetypeName,
+                userName: widget.userName,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _capturing ? null : _captureAndShare,
+              icon: _capturing
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.ios_share, size: 18),
+              label: Text(_capturing ? 'Capturing…' : 'Share image'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
