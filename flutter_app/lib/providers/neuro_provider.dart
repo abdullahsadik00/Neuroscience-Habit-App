@@ -226,7 +226,7 @@ class NeuroNotifier extends Notifier<NeuroState> {
   // ── STACKS ────────────────────────────────────────────────────────────────
 
   bool get canAddStack =>
-      state.isPro || state.stacks.where((s) => s.isActive).length < 2;
+      state.isPro || state.stacks.where((s) => s.isActive).length < 5;
 
   void addNeuroStack({
     required String title,
@@ -240,7 +240,7 @@ class NeuroNotifier extends Notifier<NeuroState> {
   }) {
     if (!canAddStack) {
       ref.read(proGateEventProvider.notifier).state =
-          'Free plan is limited to 2 active habits. Upgrade to Pro for unlimited habits and deeper insights.';
+          'Free plan supports up to 5 active habits. Upgrade to Pro for unlimited habits, failure signatures, and deeper recovery insights.';
       return;
     }
     final stack = NeuroStack(
@@ -344,7 +344,7 @@ class NeuroNotifier extends Notifier<NeuroState> {
   // ── SWAPS ────────────────────────────────────────────────────────────────
 
   bool get canAddSwap =>
-      state.isPro || state.swaps.where((s) => s.isActive).length < 1;
+      state.isPro || state.swaps.where((s) => s.isActive).length < 3;
 
   void addNeuroSwap({
     required String title,
@@ -356,7 +356,7 @@ class NeuroNotifier extends Notifier<NeuroState> {
   }) {
     if (!canAddSwap) {
       ref.read(proGateEventProvider.notifier).state =
-          'Free plan allows 1 active swap. Upgrade to Pro for unlimited swaps and personalized friction coaching.';
+          'Free plan supports up to 3 active swaps. Upgrade to Pro for unlimited swaps and personalized friction coaching.';
       return;
     }
     final swap = NeuroSwap(

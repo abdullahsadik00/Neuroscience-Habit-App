@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
+import '../providers/neuro_provider.dart';
 import '../utils/stats_helpers.dart';
 import '../utils/failure_analysis.dart';
 import '../theme/app_theme.dart';
 
-class RecoveryPlaybook extends StatelessWidget {
+class RecoveryPlaybook extends ConsumerWidget {
   final List<NeuroStack> stacks;
   final List<ComebackRecord> comebacks;
   final List<NeuroSwap> swaps;
@@ -18,11 +20,12 @@ class RecoveryPlaybook extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPro = ref.watch(neuroProvider).isPro;
     final insights = getRecoveryInsights(stacks, comebacks, swaps);
     final sig = analyseFailureSignatures(stacks, comebacks);
 
-    if (insights.isEmpty && !sig.hasEnoughData) return const SizedBox.shrink();
+    if (insights.isEmpty && (!sig.hasEnoughData || !isPro)) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -46,7 +49,7 @@ class RecoveryPlaybook extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (sig.hasEnoughData)
+              if (sig.hasEnoughData && isPro)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
@@ -54,12 +57,28 @@ class RecoveryPlaybook extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Text('v2 · Failure Signatures', style: TextStyle(fontSize: 10, color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600)),
+                )
+              else if (sig.hasEnoughData && !isPro)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_outline, size: 10, color: Color(0xFFF59E0B)),
+                      SizedBox(width: 3),
+                      Text('Failure Signatures · Pro', style: TextStyle(fontSize: 10, color: Color(0xFFF59E0B), fontWeight: FontWeight.w600)),
+                    ],
+                  ),
                 ),
             ],
           ),
 
-          // ── Failure Signatures (v2) ──────────────────────────────────────
-          if (sig.hasEnoughData) ...[
+          // ── Failure Signatures (v2 — Pro only) ──────────────────────────
+          if (sig.hasEnoughData && isPro) ...[
             const SizedBox(height: 14),
             _SectionLabel(label: 'Your failure patterns'),
             const SizedBox(height: 8),
