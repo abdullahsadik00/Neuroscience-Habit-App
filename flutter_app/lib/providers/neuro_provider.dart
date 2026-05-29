@@ -11,6 +11,7 @@ import '../data/habit_library.dart';
 
 const _storageKey = 'neuroflow-state-v1';
 const _uuid = Uuid();
+const _milestones = [10, 25, 50, 75, 100];
 
 // Provided via ProviderScope override at startup
 final initialStateProvider = Provider<NeuroState>((_) => NeuroState.initial());
@@ -18,6 +19,13 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((_) => throw Unimp
 
 // Theme provider
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+
+// Emits (habitTitle, milestonePercent) when myelination crosses a milestone.
+// Dashboard watches this and shows celebration, then sets it back to null.
+final milestoneEventProvider = StateProvider<(String, int)?>((_) => null);
+
+// Emits an upgrade-gate message when a free-tier limit is hit.
+final proGateEventProvider = StateProvider<String?>((_) => null);
 
 @immutable
 class NeuroState {
@@ -217,6 +225,9 @@ class NeuroNotifier extends Notifier<NeuroState> {
 
   // ── STACKS ────────────────────────────────────────────────────────────────
 
+  bool get canAddStack =>
+      state.isPro || state.stacks.where((s) => s.isActive).length < 2;
+
   void addNeuroStack({
     required String title,
     required String anchorCue,
@@ -224,7 +235,14 @@ class NeuroNotifier extends Notifier<NeuroState> {
     required String reward,
     required HabitCategory category,
     required int acetylcholineDuration,
+    String? whenCondition,
+    String? thenAction,
   }) {
+    if (!canAddStack) {
+      ref.read(proGateEventProvider.notifier).state =
+          'Free plan is limited to 2 active habits. Upgrade to Pro for unlimited habits and deeper insights.';
+      return;
+    }
     final stack = NeuroStack(
       id: 'stack-${_uuid.v4()}',
       title: title,
@@ -238,6 +256,8 @@ class NeuroNotifier extends Notifier<NeuroState> {
       completions: const [],
       createdAt: DateTime.now().toIso8601String(),
       isActive: true,
+      whenCondition: whenCondition,
+      thenAction: thenAction,
     );
     _save(state.copyWith(stacks: [stack, ...state.stacks]));
   }
@@ -248,27 +268,51 @@ class NeuroNotifier extends Notifier<NeuroState> {
     ));
   }
 
-  void deleteNeuroStack(String id) {
-    _save(state.copyWith(stacks: state.stacks.where((s) => s.id != id).toList()));
+  // Soft-delete: sets isActive=false. Hard deletes are only for data reset.
+  void archiveNeuroStack(String id) {
+    _save(state.copyWith(
+      stacks: state.stacks.map((s) => s.id == id ? s.copyWith(isActive: false) : s).toList(),
+    ));
+  }
+
+  void unarchiveNeuroStack(String id) {
+    _save(state.copyWith(
+      stacks: state.stacks.map((s) => s.id == id ? s.copyWith(isActive: true) : s).toList(),
+    ));
   }
 
   void completeNeuroStack(String id, {String? notes}) {
     final todayStr = getLocalDateString(DateTime.now());
     int dopamineAward = 25;
     int acetylcholineAward = 20;
+    String? celebratedTitle;
+    int? milestoneHit;
 
     final updatedStacks = state.stacks.map((stack) {
       if (stack.id != id) return stack;
       final alreadyDone = stack.completions.contains(todayStr);
       final completions = alreadyDone ? stack.completions : [...stack.completions, todayStr];
       final streak = calculateStreak(completions);
-      final myelination = calculateMyelination(completions.length, streak);
+      final oldMyelination = stack.myelinationLevel;
+      final newMyelination = calculateMyelination(completions.length, streak);
       if (streak > 5) {
         dopamineAward = 40;
         acetylcholineAward = 30;
       }
-      return stack.copyWith(completions: completions, streak: streak, myelinationLevel: myelination);
+      // Check milestone crossing (10/25/50/75/100)
+      for (final m in _milestones) {
+        if (oldMyelination < m && newMyelination >= m) {
+          celebratedTitle = stack.title;
+          milestoneHit = m;
+          break;
+        }
+      }
+      return stack.copyWith(completions: completions, streak: streak, myelinationLevel: newMyelination);
     }).toList();
+
+    if (celebratedTitle != null && milestoneHit != null) {
+      ref.read(milestoneEventProvider.notifier).state = (celebratedTitle!, milestoneHit!);
+    }
 
     final completed = state.stacks.firstWhere((s) => s.id == id, orElse: () => state.stacks.first);
     final log = NeuroLog(
@@ -299,6 +343,9 @@ class NeuroNotifier extends Notifier<NeuroState> {
 
   // ── SWAPS ────────────────────────────────────────────────────────────────
 
+  bool get canAddSwap =>
+      state.isPro || state.swaps.where((s) => s.isActive).length < 1;
+
   void addNeuroSwap({
     required String title,
     required String cue,
@@ -307,6 +354,11 @@ class NeuroNotifier extends Notifier<NeuroState> {
     required int frictionLevel,
     required List<String> frictionSteps,
   }) {
+    if (!canAddSwap) {
+      ref.read(proGateEventProvider.notifier).state =
+          'Free plan allows 1 active swap. Upgrade to Pro for unlimited swaps and personalized friction coaching.';
+      return;
+    }
     final swap = NeuroSwap(
       id: 'swap-${_uuid.v4()}',
       title: title,
@@ -321,6 +373,12 @@ class NeuroNotifier extends Notifier<NeuroState> {
       isActive: true,
     );
     _save(state.copyWith(swaps: [swap, ...state.swaps]));
+  }
+
+  void archiveNeuroSwap(String id) {
+    _save(state.copyWith(
+      swaps: state.swaps.map((s) => s.id == id ? s.copyWith(isActive: false) : s).toList(),
+    ));
   }
 
   void deleteNeuroSwap(String id) {

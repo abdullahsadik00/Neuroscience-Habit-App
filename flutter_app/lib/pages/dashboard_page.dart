@@ -19,6 +19,7 @@ import '../widgets/add_swap_sheet.dart';
 import '../widgets/weekly_checkin_modal.dart';
 import '../widgets/recalibration_sheet.dart';
 import '../widgets/recovery_playbook.dart';
+import '../widgets/brain_profile_card.dart';
 
 const _checkinIntervalDays = 7;
 
@@ -37,10 +38,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkCheckin();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkCheckin());
   }
 
   @override
@@ -52,15 +50,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   void _checkCheckin() {
     if (_checkinShown) return;
     final state = ref.read(neuroProvider);
-    if (state.lastCheckinDate == null) {
-      _showCheckin();
-      return;
-    }
-    final lastDate = DateTime.parse(state.lastCheckinDate!);
-    final daysSince = DateTime.now().difference(lastDate).inDays;
-    if (daysSince >= _checkinIntervalDays) {
-      _showCheckin();
-    }
+    if (state.lastCheckinDate == null) { _showCheckin(); return; }
+    final daysSince = DateTime.now().difference(DateTime.parse(state.lastCheckinDate!)).inDays;
+    if (daysSince >= _checkinIntervalDays) _showCheckin();
   }
 
   void _showCheckin() {
@@ -73,9 +65,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
         backgroundColor: Colors.transparent,
         builder: (_) => const WeeklyCheckinModal(),
       ).then((record) {
-        if (record is CheckinRecord && mounted) {
-          _checkRecalibration(record);
-        }
+        if (record is CheckinRecord && mounted) _checkRecalibration(record);
       });
     });
   }
@@ -84,7 +74,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     final state = ref.read(neuroProvider);
     final suggestions = runRecalibration(state.stacks, state.checkinHistory, state.brainProfile);
     if (suggestions.isEmpty) return;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -93,8 +82,97 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     );
   }
 
+  void _showMilestoneCelebration(String habitTitle, int milestone) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 4),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)]),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [BoxShadow(color: const Color(0xFF6366F1).withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 4))],
+          ),
+          child: Row(
+            children: [
+              const Text('🧠', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$milestone% Neural Pathway!',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    Text(
+                      '"$habitTitle" is becoming automatic.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showProGate(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.psychology, color: Color(0xFF6366F1)),
+            const SizedBox(width: 8),
+            const Text('Upgrade to Pro'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Not now')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: launch Stripe paywall when Stripe is integrated
+              ref.read(neuroProvider.notifier).upgradeToPro();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Pro unlocked! (Stripe coming soon)')),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF6366F1)),
+            child: const Text('Upgrade — \$9/mo'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Watch providers for side-effect events
+    ref.listen<(String, int)?>(milestoneEventProvider, (_, event) {
+      if (event != null && mounted) {
+        _showMilestoneCelebration(event.$1, event.$2);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) ref.read(milestoneEventProvider.notifier).state = null;
+        });
+      }
+    });
+    ref.listen<String?>(proGateEventProvider, (_, message) {
+      if (message != null && mounted) {
+        _showProGate(message);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) ref.read(proGateEventProvider.notifier).state = null;
+        });
+      }
+    });
+
     final state = ref.watch(neuroProvider);
     final activeStacks = state.stacks.where((s) => s.isActive).toList();
     final today = getLocalDateString(DateTime.now());
@@ -104,8 +182,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     final canShowComeback = state.isPro || camebacksThisMonth < 3;
 
     final brainScore = calcBrainScore(state.stacks, state.comebacks, state.neurochemistry);
+    final comebackStreak = getComebackStreak(state.comebacks);
     final bestStreak = getBestStreak(state.stacks);
-    final daysIn = getDaysInSystem(state.stacks);
     final recoveryRate = calcRecoveryRate(state.comebacks);
 
     return Scaffold(
@@ -114,18 +192,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              state.userProfile.name.isNotEmpty ? 'Hey, ${state.userProfile.name}' : 'NeuroFlow',
+              state.userProfile.name.isNotEmpty ? 'Hey, ${state.userProfile.name}' : 'NeuroSync',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            Text(
-              _dayGreeting(),
-              style: TextStyle(fontSize: 12, color: context.textSecondary),
-            ),
+            Text(_dayGreeting(), style: TextStyle(fontSize: 12, color: context.textSecondary)),
           ],
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 4),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -161,8 +236,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                 const SizedBox(height: 12),
                 StatsBar(
                   brainScore: brainScore,
+                  comebackStreak: comebackStreak,
                   bestStreak: bestStreak,
-                  daysInSystem: daysIn,
                   recoveryRate: recoveryRate,
                 ).animate().fadeIn(delay: 100.ms),
                 const SizedBox(height: 12),
@@ -183,20 +258,25 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             child: TabBarView(
               controller: _tabController,
               children: [
-                _HabitsTab(stacks: activeStacks, comebacks: state.comebacks, today: today),
+                _HabitsTab(
+                  stacks: state.stacks,
+                  comebacks: state.comebacks,
+                  today: today,
+                ),
                 _SwapsTab(swaps: state.swaps.where((s) => s.isActive).toList()),
                 _ActivityTab(
                   logs: state.logs,
                   stacks: state.stacks,
                   comebacks: state.comebacks,
                   swaps: state.swaps,
+                  brainProfile: state.brainProfile,
                 ),
               ],
             ),
           ),
         ],
       ),
-      floatingActionButton: _buildFab(context),
+      floatingActionButton: _buildFab(context, state),
     );
   }
 
@@ -207,19 +287,28 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     return 'Good evening';
   }
 
-  Widget? _buildFab(BuildContext context) {
+  Widget? _buildFab(BuildContext context, NeuroState state) {
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, _) {
         if (_tabController.index == 2) return const SizedBox.shrink();
         return FloatingActionButton(
           onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => _tabController.index == 0 ? const AddHabitSheet() : const AddSwapSheet(),
-            );
+            if (_tabController.index == 0) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const AddHabitSheet(),
+              );
+            } else {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const AddSwapSheet(),
+              );
+            }
           },
           backgroundColor: const Color(0xFF6366F1),
           child: const Icon(Icons.add, color: Colors.white),
@@ -229,15 +318,29 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   }
 }
 
-class _HabitsTab extends ConsumerWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Habits Tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HabitsTab extends ConsumerStatefulWidget {
   final List<NeuroStack> stacks;
   final List<ComebackRecord> comebacks;
   final String today;
   const _HabitsTab({required this.stacks, required this.comebacks, required this.today});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (stacks.isEmpty) {
+  ConsumerState<_HabitsTab> createState() => _HabitsTabState();
+}
+
+class _HabitsTabState extends ConsumerState<_HabitsTab> {
+  bool _showArchived = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = widget.stacks.where((s) => s.isActive).toList();
+    final archived = widget.stacks.where((s) => !s.isActive).toList();
+
+    if (active.isEmpty && archived.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -252,24 +355,92 @@ class _HabitsTab extends ConsumerWidget {
       );
     }
 
-    return ListView.separated(
+    return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: stacks.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, i) {
-        final stack = stacks[i];
-        final completedToday = stack.completions.contains(today);
-        return HabitCard(
-          stack: stack,
-          comebacks: comebacks,
-          completedToday: completedToday,
-          onComplete: () => ref.read(neuroProvider.notifier).completeNeuroStack(stack.id),
-          onDelete: () => ref.read(neuroProvider.notifier).deleteNeuroStack(stack.id),
-        ).animate(delay: (i * 60).ms).fadeIn().slideY(begin: 0.05);
-      },
+      children: [
+        // Active habits
+        ...active.asMap().entries.map((e) {
+          final stack = e.value;
+          final completedToday = stack.completions.contains(widget.today);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: HabitCard(
+              stack: stack,
+              comebacks: widget.comebacks,
+              completedToday: completedToday,
+              onComplete: () => ref.read(neuroProvider.notifier).completeNeuroStack(stack.id),
+              onArchive: () => ref.read(neuroProvider.notifier).archiveNeuroStack(stack.id),
+            ).animate(delay: (e.key * 60).ms).fadeIn().slideY(begin: 0.05),
+          );
+        }),
+
+        // Archived section
+        if (archived.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => setState(() => _showArchived = !_showArchived),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: context.cardBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.archive_outlined, size: 16, color: context.textSecondary),
+                  const SizedBox(width: 8),
+                  Text('Archived (${archived.length})', style: TextStyle(color: context.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
+                  const Spacer(),
+                  Icon(_showArchived ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: 18, color: context.textSecondary),
+                ],
+              ),
+            ),
+          ),
+          if (_showArchived) ...[
+            const SizedBox(height: 8),
+            ...archived.map((stack) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: context.cardBg.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: context.borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stack.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                          Text('${stack.streak}d streak · ${stack.myelinationLevel.round()}% pathway', style: TextStyle(fontSize: 11, color: context.textSecondary)),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => ref.read(neuroProvider.notifier).unarchiveNeuroStack(stack.id),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                      ),
+                      child: const Text('Restore', style: TextStyle(fontSize: 12, color: Color(0xFF6366F1))),
+                    ),
+                  ],
+                ),
+              ),
+            )),
+          ],
+        ],
+      ],
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Swaps Tab
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _SwapsTab extends ConsumerWidget {
   final List<NeuroSwap> swaps;
@@ -302,19 +473,31 @@ class _SwapsTab extends ConsumerWidget {
           swap: swap,
           onUrgeSurf: () => ref.read(neuroProvider.notifier).logUrgeSurf(swap.id),
           onSlip: () => ref.read(neuroProvider.notifier).logSlip(swap.id),
-          onDelete: () => ref.read(neuroProvider.notifier).deleteNeuroSwap(swap.id),
+          onDelete: () => ref.read(neuroProvider.notifier).archiveNeuroSwap(swap.id),
         ).animate(delay: (i * 60).ms).fadeIn().slideY(begin: 0.05);
       },
     );
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Activity Tab
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _ActivityTab extends StatelessWidget {
   final List<NeuroLog> logs;
   final List<NeuroStack> stacks;
   final List<ComebackRecord> comebacks;
   final List<NeuroSwap> swaps;
-  const _ActivityTab({required this.logs, required this.stacks, required this.comebacks, required this.swaps});
+  final NeuroBrainProfile? brainProfile;
+
+  const _ActivityTab({
+    required this.logs,
+    required this.stacks,
+    required this.comebacks,
+    required this.swaps,
+    required this.brainProfile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -323,26 +506,48 @@ class _ActivityTab extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           sliver: SliverToBoxAdapter(
-            child: RecoveryPlaybook(stacks: stacks, comebacks: comebacks, swaps: swaps),
+            child: Column(
+              children: [
+                RecoveryPlaybook(stacks: stacks, comebacks: comebacks, swaps: swaps),
+                if (brainProfile != null) ...[
+                  const SizedBox(height: 16),
+                  Consumer(
+                    builder: (context, ref, _) => BrainProfileCard(
+                      profile: brainProfile!,
+                      onRetake: () {
+                        // Reset brain profile so routing goes back to BrainAssessmentPage
+                        ref.read(neuroProvider.notifier).setBrainProfile(brainProfile!);
+                        // TODO: navigate to BrainAssessmentPage for retake
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Retake: navigate to Brain Assessment (coming soon)')),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
         if (logs.isEmpty)
-          const SliverFillRemaining(
-            child: Center(child: Text('No activity yet.')),
-          )
-        else
+          const SliverFillRemaining(child: SizedBox.shrink())
+        else ...[
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            sliver: SliverToBoxAdapter(
+              child: Text('Recent Activity', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final log = logs[i];
-                  return _LogItem(log: log).animate(delay: (i * 40).ms).fadeIn();
-                },
+                (context, i) => _LogItem(log: logs[i]).animate(delay: (i * 40).ms).fadeIn(),
                 childCount: logs.length,
               ),
             ),
           ),
+        ],
       ],
     );
   }
@@ -358,7 +563,7 @@ class _LogItem extends StatelessWidget {
       LogType.completion => (Icons.check_circle, const Color(0xFF10B981), 'Completed'),
       LogType.urgeSurf => (Icons.waves, const Color(0xFF3B82F6), 'Urge Surfed'),
       LogType.slip => (Icons.warning_amber, const Color(0xFFEF4444), 'Slip'),
-      LogType.comeback => (Icons.arrow_back, const Color(0xFFF59E0B), 'Comeback'),
+      LogType.comeback => (Icons.replay_circle_filled, const Color(0xFFF59E0B), 'Comeback'),
     };
 
     final time = DateTime.tryParse(log.timestamp);
@@ -378,8 +583,7 @@ class _LogItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 36, height: 36,
               decoration: BoxDecoration(color: color.withOpacity(0.15), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 18),
             ),
@@ -408,11 +612,13 @@ class _LogItem extends StatelessWidget {
   }
 }
 
-/// Shows a sign-out icon only when Supabase is initialised and a user is signed in.
+// ─────────────────────────────────────────────────────────────────────────────
+// Sign-out button (only visible when Supabase is configured + user is signed in)
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _SignOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Guard: if Supabase was not initialised (no credentials provided), hide button.
     bool supabaseReady = false;
     try {
       Supabase.instance.client;
@@ -441,9 +647,7 @@ class _SignOutButton extends StatelessWidget {
             ],
           ),
         );
-        if (confirmed == true) {
-          await Supabase.instance.client.auth.signOut();
-        }
+        if (confirmed == true) await Supabase.instance.client.auth.signOut();
       },
     );
   }

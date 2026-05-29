@@ -13,6 +13,9 @@ class NeuroStack {
   final List<String> completions;
   final String createdAt;
   final bool isActive;
+  // Implementation Intentions — "When [whenCondition] I will [action]"
+  final String? whenCondition;
+  final String? thenAction;
 
   const NeuroStack({
     required this.id,
@@ -27,6 +30,8 @@ class NeuroStack {
     required this.completions,
     required this.createdAt,
     required this.isActive,
+    this.whenCondition,
+    this.thenAction,
   });
 
   NeuroStack copyWith({
@@ -42,6 +47,8 @@ class NeuroStack {
     List<String>? completions,
     String? createdAt,
     bool? isActive,
+    String? whenCondition,
+    String? thenAction,
   }) =>
       NeuroStack(
         id: id ?? this.id,
@@ -56,6 +63,8 @@ class NeuroStack {
         completions: completions ?? this.completions,
         createdAt: createdAt ?? this.createdAt,
         isActive: isActive ?? this.isActive,
+        whenCondition: whenCondition ?? this.whenCondition,
+        thenAction: thenAction ?? this.thenAction,
       );
 
   Map<String, dynamic> toJson() => {
@@ -71,6 +80,8 @@ class NeuroStack {
         'completions': completions,
         'createdAt': createdAt,
         'isActive': isActive,
+        'whenCondition': whenCondition,
+        'thenAction': thenAction,
       };
 
   factory NeuroStack.fromJson(Map<String, dynamic> json) => NeuroStack(
@@ -88,6 +99,8 @@ class NeuroStack {
         streak: json['streak'] as int,
         completions: List<String>.from(json['completions'] as List),
         createdAt: json['createdAt'] as String,
-        isActive: json['isActive'] as bool,
+        isActive: json['isActive'] as bool? ?? true,
+        whenCondition: json['whenCondition'] as String?,
+        thenAction: json['thenAction'] as String?,
       );
 }

@@ -4,15 +4,15 @@ import '../theme/app_theme.dart';
 
 class StatsBar extends StatelessWidget {
   final int brainScore;
+  final int comebackStreak;
   final int bestStreak;
-  final int daysInSystem;
   final double recoveryRate;
 
   const StatsBar({
     super.key,
     required this.brainScore,
+    required this.comebackStreak,
     required this.bestStreak,
-    required this.daysInSystem,
     required this.recoveryRate,
   });
 
@@ -27,13 +27,33 @@ class StatsBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Stat(label: 'Brain Score', value: '$brainScore', icon: Icons.psychology, color: const Color(0xFF6366F1)).animate().fadeIn(delay: 50.ms),
+          _Stat(
+            label: 'Brain Score',
+            value: '$brainScore',
+            icon: Icons.psychology,
+            color: const Color(0xFF6366F1),
+          ).animate().fadeIn(delay: 50.ms),
           _Divider(),
-          _Stat(label: 'Best Streak', value: '${bestStreak}d', icon: Icons.local_fire_department, color: const Color(0xFFF59E0B)).animate().fadeIn(delay: 100.ms),
+          _Stat(
+            label: 'Comeback',
+            value: '${comebackStreak}d',
+            icon: Icons.replay_circle_filled,
+            color: const Color(0xFFF59E0B),
+          ).animate().fadeIn(delay: 100.ms),
           _Divider(),
-          _Stat(label: 'Days In', value: '${daysInSystem}d', icon: Icons.calendar_today, color: const Color(0xFF10B981)).animate().fadeIn(delay: 150.ms),
+          _Stat(
+            label: 'Best Streak',
+            value: '${bestStreak}d',
+            icon: Icons.local_fire_department,
+            color: const Color(0xFF10B981),
+          ).animate().fadeIn(delay: 150.ms),
           _Divider(),
-          _Stat(label: 'Recovery', value: '${recoveryRate.round()}%', icon: Icons.refresh, color: const Color(0xFF8B5CF6)).animate().fadeIn(delay: 200.ms),
+          _Stat(
+            label: 'Recovery',
+            value: '${recoveryRate.round()}%',
+            icon: Icons.refresh,
+            color: const Color(0xFF8B5CF6),
+          ).animate().fadeIn(delay: 200.ms),
         ],
       ),
     );
@@ -43,7 +63,12 @@ class StatsBar extends StatelessWidget {
 class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 32, color: context.borderColor, margin: const EdgeInsets.symmetric(horizontal: 12));
+    return Container(
+      width: 1,
+      height: 32,
+      color: context.borderColor,
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+    );
   }
 }
 

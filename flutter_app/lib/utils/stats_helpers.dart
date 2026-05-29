@@ -96,6 +96,48 @@ int getComebacksThisMonth(List<ComebackRecord> comebacks) {
   return comebacks.where((c) => c.date.startsWith(monthStr)).length;
 }
 
+/// Consecutive days the Comeback Protocol fired — our core differentiator metric.
+int getComebackStreak(List<ComebackRecord> comebacks) {
+  if (comebacks.isEmpty) return 0;
+  // Deduplicate to one entry per day, sorted descending
+  final dates = comebacks.map((c) => c.date).toSet().toList()
+    ..sort((a, b) => b.compareTo(a));
+  int streak = 1;
+  for (int i = 1; i < dates.length; i++) {
+    final prev = DateTime.parse(dates[i - 1]);
+    final curr = DateTime.parse(dates[i]);
+    if (prev.difference(curr).inDays == 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+/// Average days from a miss to the next completion — "recovery speed".
+/// Lower is better. Returns 0 when no data exists.
+double getAvgRecoveryDays(List<NeuroStack> stacks, List<ComebackRecord> comebacks) {
+  final recoveries = <int>[];
+  for (final stack in stacks.where((s) => s.isActive)) {
+    final completions = stack.completions.toSet();
+    final stackComebacks = comebacks.where((c) => c.stackId == stack.id).toList();
+    for (final cb in stackComebacks) {
+      final cbDate = DateTime.parse(cb.date);
+      for (int d = 1; d <= 7; d++) {
+        final next = getLocalDateString(cbDate.add(Duration(days: d)));
+        if (completions.contains(next)) {
+          recoveries.add(d);
+          break;
+        }
+      }
+    }
+  }
+  if (recoveries.isEmpty) return 0;
+  return recoveries.reduce((a, b) => a + b) / recoveries.length;
+}
+
+
 List<String> getRecoveryInsights(
   List<NeuroStack> stacks,
   List<ComebackRecord> comebacks,
