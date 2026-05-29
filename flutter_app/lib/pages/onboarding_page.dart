@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/neuro_provider.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -34,6 +35,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         role: _role,
       );
       ref.read(neuroProvider.notifier).completeOnboarding();
+      // Request notification permission and schedule daily reminders
+      NotificationService.requestPermission().then((_) {
+        NotificationService.scheduleDailyReminder();
+        NotificationService.scheduleEveningCheckin();
+      });
     }
   }
 

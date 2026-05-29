@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import '../providers/neuro_provider.dart';
 import '../models/models.dart';
@@ -20,6 +21,7 @@ import '../widgets/weekly_checkin_modal.dart';
 import '../widgets/recalibration_sheet.dart';
 import '../widgets/recovery_playbook.dart';
 import '../widgets/brain_profile_card.dart';
+import 'upgrade_page.dart';
 
 const _checkinIntervalDays = 7;
 
@@ -217,6 +219,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             ),
           ),
           IconButton(
+            icon: const Icon(Icons.ios_share_outlined),
+            tooltip: 'Share your stats',
+            onPressed: () => _shareStats(brainScore, comebackStreak, recoveryRate),
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_outlined),
+            tooltip: 'Upgrade to Pro',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UpgradePage())),
+          ),
+          IconButton(
             icon: Icon(ref.watch(themeModeProvider) == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
               ref.read(themeModeProvider.notifier).state =
@@ -278,6 +290,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
       ),
       floatingActionButton: _buildFab(context, state),
     );
+  }
+
+  void _shareStats(int brainScore, int comebackStreak, double recoveryRate) {
+    final text = '''My NeuroSync Recovery Stats:
+
+🧠 Brain Score: $brainScore
+↩ Comeback Streak: ${comebackStreak}d
+✅ Recovery Rate: ${recoveryRate.round()}%
+
+Built my neural pathways one comeback at a time.
+Track your habit recovery at neurosync.app''';
+    Share.share(text, subject: 'My NeuroSync Recovery Stats');
   }
 
   String _dayGreeting() {
