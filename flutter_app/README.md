@@ -1,44 +1,127 @@
 # NeuroFlow — Flutter Mobile App
 
-Flutter port of the NeuroFlow web app. Same full feature set: Habit Stacks, Neuro Swaps, Neurochemistry HUD, Brain Assessment, Comeback Protocol, Weekly Check-ins, and Recalibration Engine.
+Flutter port of the NeuroFlow web app. Full feature set: Habit Stacks, Neuro Swaps, Neurochemistry HUD, Brain Assessment, Comeback Protocol, Weekly Check-ins, Recalibration Engine, and Supabase auth + cloud sync.
 
-## Setup (Flutter not installed yet)
+---
 
-### 1. Install Flutter
+## One-time Setup
+
+### Step 1 — Install Flutter
+
 ```bash
-# macOS — using fvm (recommended) or direct download
+# macOS (recommended: via fvm)
 brew install fvm
 fvm install stable
 fvm global stable
 
-# Or: https://docs.flutter.dev/get-started/install/macos
+# Add to ~/.zshrc:
+export PATH="$HOME/fvm/default/bin:$PATH"
+
+# Or install Flutter directly:
+# https://docs.flutter.dev/get-started/install/macos
 ```
 
-### 2. Bootstrap the project
+Verify:
+```bash
+flutter doctor
+```
+
+### Step 2 — Install dependencies
+
 ```bash
 cd flutter_app
-
-# Create the Flutter project scaffold (Android/iOS boilerplate)
-flutter create . --project-name neuroflow --org com.neuroflow --platforms ios,android
-
-# Install dependencies
 flutter pub get
 ```
 
-> `flutter create .` will generate platform folders but won't overwrite the existing `lib/` code.
+### Step 3 — Set up Supabase (for auth + cloud sync)
 
-### 3. Run the app
-```bash
-flutter run          # runs on connected device / simulator
-flutter run -d chrome  # runs as web (also supported)
+> Skip this for local-only mode — the app works offline without Supabase credentials.
+
+1. Create a project at https://supabase.com (free tier is fine)
+2. Enable **Email magic link** auth:
+   - Dashboard → Authentication → Providers → Email
+   - Enable Email: **ON**, Confirm email: **OFF**, OTP sign-in: **ON**
+3. Add redirect URLs:
+   - Dashboard → Authentication → URL Configuration → Redirect URLs
+   - Add: `com.neuroflow://login-callback/`
+   - Add: `http://localhost` (for web/dev)
+4. Run the schema SQL in the SQL editor:
+
+```sql
+create table neuro_state (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  state_json jsonb not null default '{}',
+  updated_at timestamptz not null default now()
+);
+
+alter table neuro_state enable row level security;
+
+create policy "Users own their state"
+  on neuro_state for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 ```
+
+5. Copy your credentials from Dashboard → Project Settings → API.
+
+### Step 4 — Configure deep links (for magic link redirect back to app)
+
+**Android** — in `android/app/src/main/AndroidManifest.xml`, inside the `<activity>` tag:
+
+```xml
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="com.neuroflow" android:host="login-callback" />
+</intent-filter>
+```
+
+**iOS** — in `ios/Runner/Info.plist`:
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array><string>com.neuroflow</string></array>
+  </dict>
+</array>
+```
+
+---
+
+## Running the App
+
+### Without Supabase (local-only, no auth)
+```bash
+flutter run -d chrome        # web
+flutter run                  # connected device / iOS simulator
+```
+
+### With Supabase (auth + cloud sync)
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+
+# Or for web:
+flutter run -d chrome \
+  --dart-define=SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+> Never commit your Supabase keys to git. Keep them in a local `.env` or shell alias.
+
+---
 
 ## Stack
 
 | Concern | Library |
 |---|---|
 | State | `flutter_riverpod` 2.x (`Notifier`) |
-| Persistence | `shared_preferences` (JSON, mirrors web localStorage) |
+| Persistence | `shared_preferences` (local) + Supabase Postgres (cloud) |
+| Auth | `supabase_flutter` (email magic link) |
 | Animations | `flutter_animate` |
 | Fonts | `google_fonts` (Inter) |
 | IDs | `uuid` |
@@ -47,15 +130,21 @@ flutter run -d chrome  # runs as web (also supported)
 
 ```
 lib/
-├── main.dart              # Preloads SharedPreferences, bootstraps ProviderScope
-├── app.dart               # MaterialApp + _AppRouter (mirrors App.tsx)
+├── main.dart              # Preloads SharedPreferences, bootstraps ProviderScope + Supabase
+├── app.dart               # MaterialApp + _AppRouter (auth gate → onboarding → dashboard)
 ├── theme/app_theme.dart   # Dark + light ThemeData, neurochemical colours
 ├── models/                # All data models with toJson/fromJson
 ├── providers/
-│   └── neuro_provider.dart  # NeuroNotifier (single Riverpod Notifier, mirrors Zustand store)
+│   ├── neuro_provider.dart  # NeuroNotifier — state, local save, cloud sync
+│   └── auth_provider.dart   # Supabase auth stream + currentUser providers
 ├── utils/                 # Ported 1:1 from TS: neuro_helpers, stats_helpers, etc.
 ├── data/habit_library.dart  # Full 30-habit library
-├── pages/                 # Onboarding → BrainAssessment → RoutineBlueprint → Dashboard
+├── pages/
+│   ├── auth_gate_page.dart         # Magic link email form
+│   ├── onboarding_page.dart
+│   ├── brain_assessment_page.dart
+│   ├── routine_blueprint_page.dart
+│   └── dashboard_page.dart
 └── widgets/               # HabitCard, SwapCard, NeurochemHUD, ComebackProtocol, etc.
 ```
 
@@ -78,3 +167,6 @@ lib/
 - [x] Activity log with neurochemical change display
 - [x] Dark / light theme toggle (persisted via Riverpod)
 - [x] Full local persistence via SharedPreferences
+- [x] Supabase auth (email magic link)
+- [x] Cloud state sync (Supabase Postgres — auto-syncs on every action)
+- [x] Sign out with confirmation dialog
