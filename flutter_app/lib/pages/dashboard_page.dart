@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import '../providers/neuro_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -147,6 +148,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   ref.read(themeModeProvider) == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
             },
           ),
+          _SignOutButton(),
         ],
       ),
       body: Column(
@@ -402,6 +404,47 @@ class _LogItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Shows a sign-out icon only when Supabase is initialised and a user is signed in.
+class _SignOutButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Guard: if Supabase was not initialised (no credentials provided), hide button.
+    bool supabaseReady = false;
+    try {
+      Supabase.instance.client;
+      supabaseReady = true;
+    } catch (_) {}
+
+    if (!supabaseReady) return const SizedBox.shrink();
+    if (Supabase.instance.client.auth.currentUser == null) return const SizedBox.shrink();
+
+    return IconButton(
+      icon: const Icon(Icons.logout),
+      tooltip: 'Sign out',
+      onPressed: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Sign out?'),
+            content: const Text('Your data is saved to the cloud. You can sign back in anytime.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF6366F1)),
+                child: const Text('Sign out'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true) {
+          await Supabase.instance.client.auth.signOut();
+        }
+      },
     );
   }
 }

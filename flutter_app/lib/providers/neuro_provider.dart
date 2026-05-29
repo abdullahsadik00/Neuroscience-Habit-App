@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../utils/neuro_helpers.dart';
@@ -173,6 +174,45 @@ class NeuroNotifier extends Notifier<NeuroState> {
   void _save(NeuroState newState) {
     state = newState;
     _prefs.setString(_storageKey, jsonEncode(newState.toJson()));
+    _syncToCloud(newState);
+  }
+
+  // Upserts the full state JSON to Supabase. Fire-and-forget — local state is
+  // already updated synchronously; cloud failure is non-blocking.
+  Future<void> _syncToCloud(NeuroState newState) async {
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user == null) return;
+      await client.from('neuro_state').upsert({
+        'user_id': user.id,
+        'state_json': newState.toJson(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (_) {
+      // Sync failure is silent — the local copy is the source of truth.
+    }
+  }
+
+  // Called on sign-in: pulls the cloud row and hydrates local state.
+  Future<void> loadFromCloud() async {
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user == null) return;
+      final row = await client
+          .from('neuro_state')
+          .select('state_json')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      if (row != null && row['state_json'] != null) {
+        final loaded = NeuroState.fromJson(row['state_json'] as Map<String, dynamic>);
+        _prefs.setString(_storageKey, jsonEncode(loaded.toJson()));
+        state = loaded;
+      }
+    } catch (_) {
+      // If cloud load fails, keep the local state as-is.
+    }
   }
 
   // ── STACKS ────────────────────────────────────────────────────────────────
