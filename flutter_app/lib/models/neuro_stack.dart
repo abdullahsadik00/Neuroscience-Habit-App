@@ -126,6 +126,11 @@ class NeuroStack {
   /// `null` if the user has not set one.
   final String? thenAction;
 
+  /// Dates (YYYY-MM-DD) on which the user chose "Lite Mode Today" for this habit.
+  /// Each entry records a day the user intentionally downscaled instead of skipping,
+  /// rewarding self-awareness and preventing full misses.
+  final List<String> liteModeDates;
+
   /// Creates a new NeuroStack with every field specified.
   ///
   /// The `const` keyword means Dart can create identical objects as compile-time
@@ -146,6 +151,7 @@ class NeuroStack {
     required this.isActive,
     this.whenCondition, // optional — omitting it sets the field to null
     this.thenAction,    // optional — omitting it sets the field to null
+    this.liteModeDates = const [], // optional — defaults to empty list
   });
 
   /// Returns a new [NeuroStack] that is a copy of this one, with only the
@@ -179,6 +185,7 @@ class NeuroStack {
     bool? isActive,
     String? whenCondition,
     String? thenAction,
+    List<String>? liteModeDates,
   }) =>
       NeuroStack(
         id: id ?? this.id,                                         // use new id if provided, else keep existing
@@ -195,6 +202,7 @@ class NeuroStack {
         isActive: isActive ?? this.isActive,
         whenCondition: whenCondition ?? this.whenCondition,
         thenAction: thenAction ?? this.thenAction,
+        liteModeDates: liteModeDates ?? this.liteModeDates,
       );
 
   /// Converts this [NeuroStack] into a plain Dart Map so it can be saved to
@@ -221,6 +229,7 @@ class NeuroStack {
         'isActive': isActive,
         'whenCondition': whenCondition, // will be null in JSON if not set — that is fine
         'thenAction': thenAction,
+        'liteModeDates': liteModeDates, // List<String> of 'YYYY-MM-DD' dates
       };
 
   /// Recreates a [NeuroStack] from a Map that was previously produced by [toJson].
@@ -266,5 +275,8 @@ class NeuroStack {
         isActive: json['isActive'] as bool? ?? true,
         whenCondition: json['whenCondition'] as String?, // nullable — may be null
         thenAction: json['thenAction'] as String?,       // nullable — may be null
+        // `as List? ?? []` — backward-compatible: old records without this field
+        // default to an empty list (no lite mode activations).
+        liteModeDates: List<String>.from(json['liteModeDates'] as List? ?? []),
       );
 }

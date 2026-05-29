@@ -77,6 +77,14 @@ import '../utils/neuro_helpers.dart';
 // suggestions to swap a habit for a simpler template.
 import '../data/habit_library.dart';
 
+// Failure analysis — computes the user's worst day of the week for pre-covery
+// notification scheduling.
+import '../utils/failure_analysis.dart';
+
+// Notification service — schedules all local push notifications including the
+// new predictive pre-covery nudges.
+import '../services/notification_service.dart';
+
 // ---------------------------------------------------------------------------
 // CONSTANTS
 // ---------------------------------------------------------------------------
@@ -633,6 +641,41 @@ class NeuroNotifier extends Notifier<NeuroState> {
     ));
   }
 
+  /// Records that the user chose Lite Mode for a specific habit today.
+  ///
+  /// Lite Mode is a same-day downscale — the user is choosing to do a lower-
+  /// friction version of the habit rather than skipping it entirely. This
+  /// prevents the miss, awards Resilience Score points, and records the date
+  /// in `liteModeDates` for the Recovery Heatmap.
+  ///
+  /// [habitId] — the ID of the habit to activate lite mode for.
+  void activateLiteMode(String habitId) {
+    final today = getLocalDateString(DateTime.now());
+    _save(state.copyWith(
+      stacks: state.stacks.map((s) {
+        if (s.id != habitId) return s;
+        // Only add today if not already in the list (deduplication).
+        if (s.liteModeDates.contains(today)) return s;
+        return s.copyWith(liteModeDates: [...s.liteModeDates, today]);
+      }).toList(),
+    ));
+  }
+
+  /// Analyses the user's failure signature and schedules proactive pre-covery
+  /// notifications for their worst habit day.
+  ///
+  /// Should be called after any slip is logged, so the failure signature
+  /// stays up to date. Silently exits when there is not enough data.
+  void _schedulePreCovery() {
+    final sig = analyseFailureSignatures(state.stacks, state.comebacks);
+    if (!sig.hasEnoughData) return;
+    if (sig.worstDayOfWeek == null || sig.weakestHabit == null) return;
+    NotificationService.schedulePreCoveryNudge(
+      habitTitle: sig.weakestHabit!.title,
+      worstDay: sig.worstDayOfWeek!,
+    );
+  }
+
   /// Marks a habit stack as completed for today and updates all derived values:
   /// streak, myelination level, neurochemistry, dopamine points, and activity log.
   /// Also fires a milestone celebration event if a threshold was crossed.
@@ -913,6 +956,10 @@ class NeuroNotifier extends Notifier<NeuroState> {
         acetylcholine: (chem.acetylcholine + 15).clamp(0, 100),
       ),
     ));
+
+    // After recording the slip, refresh the pre-covery schedule so the worst-day
+    // calculation stays current as failure patterns accumulate.
+    _schedulePreCovery();
   }
 
   // ── COMEBACKS ────────────────────────────────────────────────────────────

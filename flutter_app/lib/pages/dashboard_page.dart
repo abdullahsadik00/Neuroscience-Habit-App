@@ -89,7 +89,8 @@ import '../utils/recalibration_engine.dart';
 
 // Widgets imported below are all self-contained UI components.
 // Each lives in its own file and is composed here.
-import '../widgets/neurochem_hud.dart';       // HUD bar showing dopamine/serotonin levels
+import '../widgets/resilience_hud.dart';       // Adaptability Score arc gauge (replaces NeurochemHUD)
+import '../utils/resilience_score.dart';       // calcResilienceScore, getResilienceLabel, getResilienceTip
 import '../widgets/stats_bar.dart';           // Row of key stats (brain score, streaks, etc.)
 import '../widgets/habit_card.dart';          // Card for a single active habit stack
 import '../widgets/swap_card.dart';           // Card for a single behavior swap
@@ -465,6 +466,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
     final bestStreak     = getBestStreak(state.stacks);
     final recoveryRate   = calcRecoveryRate(state.comebacks);
 
+    // Adaptability Score — the proprietary resilience metric.
+    final resilienceScore = calcResilienceScore(
+      state.comebacks,
+      state.swaps,
+      state.stacks,
+      state.checkinHistory,
+    );
+    final resilienceLabel = getResilienceLabel(resilienceScore);
+    final resilienceTip   = getResilienceTip(resilienceScore, state.brainProfile);
+
     // -------------------------------------------------------------------------
     // WIDGET TREE
     // Scaffold is the standard full-screen layout widget. It provides AppBar,
@@ -537,11 +548,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
             tooltip: 'Share your stats', // Long-press hint on iOS/Android
             onPressed: () => _showShareSheet(
               context,
-              brainScore: brainScore,
-              comebackStreak: comebackStreak,
+              stacks: state.stacks,
+              comebacks: state.comebacks,
               recoveryRate: recoveryRate,
               bestStreak: bestStreak,
-              // Ternary: if brainProfile is non-null, compute the name; else pass null
               archetypeName: state.brainProfile != null
                   ? _archetypeName(state.brainProfile!)
                   : null,
@@ -600,10 +610,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), // left, top, right, bottom
             child: Column(
               children: [
-                // NeurochemHUD shows the dopamine/serotonin/GABA gauges.
+                // ResilienceHUD shows the user's Adaptability Score arc gauge.
                 // `.animate().fadeIn()` — flutter_animate chain: widget fades from
                 // transparent to opaque when first rendered.
-                NeurochemHUD(neurochemistry: state.neurochemistry).animate().fadeIn(),
+                ResilienceHUD(
+                  score: resilienceScore,
+                  label: resilienceLabel,
+                  tip: resilienceTip,
+                ).animate().fadeIn(),
 
                 const SizedBox(height: 12), // Vertical spacer of 12 logical pixels
 
@@ -723,24 +737,22 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
   // ---------------------------------------------------------------------------
 
   /// Opens a [_ShareSheet] bottom sheet so the user can export a stats card as a PNG.
-  ///
-  /// All parameters mirror the stats values shown on the share card.
   void _showShareSheet(
     BuildContext context, {
-    required int brainScore,
-    required int comebackStreak,
+    required List<NeuroStack> stacks,
+    required List<ComebackRecord> comebacks,
     required double recoveryRate,
     required int bestStreak,
-    String? archetypeName,       // Optional — null if the user hasn't taken the brain assessment
-    String userName = '',        // Default to empty string if not provided
+    String? archetypeName,
+    String userName = '',
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _ShareSheet(
-        brainScore: brainScore,
-        comebackStreak: comebackStreak,
+        stacks: stacks,
+        comebacks: comebacks,
         recoveryRate: recoveryRate,
         bestStreak: bestStreak,
         archetypeName: archetypeName,
@@ -902,11 +914,9 @@ class _HabitsTabState extends ConsumerState<_HabitsTab> {
               stack: stack,
               comebacks: widget.comebacks,
               completedToday: completedToday,
-              // `() =>` is a Dart arrow function (shorthand for a function body
-              // with a single expression). Here it calls the notifier method
-              // when the user taps "Complete".
               onComplete: () => ref.read(neuroProvider.notifier).completeNeuroStack(stack.id),
               onArchive:  () => ref.read(neuroProvider.notifier).archiveNeuroStack(stack.id),
+              onLiteMode: () => ref.read(neuroProvider.notifier).activateLiteMode(stack.id),
             )
             // Stagger the entrance animations: each card delays by 60ms × its index.
             // `e.key` is the 0-based position of this card in the list.
@@ -1313,36 +1323,33 @@ class _LogItem extends StatelessWidget {
 // _ShareSheet — bottom sheet that previews and exports the stats card as PNG
 // =============================================================================
 
-/// A modal bottom sheet that shows the user a preview of their shareable stats
-/// card, then captures it as a PNG image and invokes the native share sheet.
-///
-/// Extends [StatefulWidget] (not ConsumerStatefulWidget) because it does not
-/// need Riverpod — all data is passed in as constructor parameters.
+/// A modal bottom sheet that shows the user a preview of their shareable
+/// Recovery Heatmap card, then captures it as a PNG image and invokes the
+/// native share sheet.
 ///
 /// Private — only used inside this file.
 class _ShareSheet extends StatefulWidget {
-  /// The computed brain score (0–100) to display on the card.
-  final int brainScore;
+  /// All habit stacks — used to compute the 28-day heatmap grid.
+  final List<NeuroStack> stacks;
 
-  /// The current comeback streak count.
-  final int comebackStreak;
+  /// All comeback records — highlighted gold in the heatmap.
+  final List<ComebackRecord> comebacks;
 
-  /// Recovery rate as a decimal (0.0–1.0).
+  /// Recovery rate percentage (0–100 range as double).
   final double recoveryRate;
 
   /// The longest single habit streak the user has ever achieved.
   final int bestStreak;
 
-  /// Optional human-readable archetype name (e.g. "The Systems Optimizer").
-  /// Null if the user has not completed the brain assessment.
+  /// Optional archetype name. Null if the user hasn't taken the brain assessment.
   final String? archetypeName;
 
   /// The user's display name (empty string if not set).
   final String userName;
 
   const _ShareSheet({
-    required this.brainScore,
-    required this.comebackStreak,
+    required this.stacks,
+    required this.comebacks,
     required this.recoveryRate,
     required this.bestStreak,
     this.archetypeName,
@@ -1477,8 +1484,8 @@ class _ShareSheetState extends State<_ShareSheet> {
             child: RepaintBoundary(
               key: _cardKey,
               child: ShareCard(
-                brainScore: widget.brainScore,
-                comebackStreak: widget.comebackStreak,
+                stacks: widget.stacks,
+                comebacks: widget.comebacks,
                 recoveryRate: widget.recoveryRate,
                 bestStreak: widget.bestStreak,
                 archetypeName: widget.archetypeName,
