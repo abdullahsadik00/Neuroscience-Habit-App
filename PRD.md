@@ -1,8 +1,8 @@
 # NeuroSync — Product Requirements Document
 
-**Version:** 1.0  
-**Date:** May 2026  
-**Status:** Alpha — all core systems shipped  
+**Version:** 1.0
+**Date:** May 2026
+**Status:** Alpha — all core systems shipped
 
 ---
 
@@ -10,10 +10,10 @@
 
 NeuroSync is a personal habit recovery system for execution-focused people who keep failing the same habits. Unlike streak trackers that punish failure, NeuroSync's primary mechanic activates *when you miss* — not when you succeed.
 
-**One-line pitch:**  
+**One-line pitch:**
 *NeuroSync is a personal recovery engine that helps you get back on track after you miss a habit — instead of starting over from zero.*
 
-**North star:**  
+**North star:**
 Every comeback you log strengthens your playbook. That playbook is yours, and no other app has it.
 
 **Primary metric:** Recovery Rate (% of comebacks where micro-actions were completed) — not DAU, not streak length.
