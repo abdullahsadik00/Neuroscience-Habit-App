@@ -40,17 +40,25 @@ Deno.serve(async (req) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.client_reference_id; // we pass this when creating the session
+    const userId = session.client_reference_id; // passed when creating the Checkout Session
     const customerEmail = session.customer_details?.email;
+    // session.customer is a string ID in webhook payloads; guard for the full object form
+    const customerId = typeof session.customer === 'string'
+      ? session.customer
+      : (session.customer as { id?: string } | null)?.id ?? null;
+
+    const patch: Record<string, unknown> = { isPro: true };
+    if (customerId) patch.stripeCustomerId = customerId;
 
     if (userId) {
-      await _setProStatus(userId, true);
-      console.log(`Pro unlocked for user ${userId}`);
+      await _mergeState(userId, patch);
+      console.log(`Pro unlocked for user ${userId} (customer ${customerId})`);
     } else if (customerEmail) {
-      // Fallback: look up by email
+      // Fallback: look up by email when client_reference_id was not set
       const { data: user } = await supabase.auth.admin.getUserByEmail(customerEmail);
       if (user?.user?.id) {
-        await _setProStatus(user.user.id, true);
+        await _mergeState(user.user.id, patch);
+        console.log(`Pro unlocked via email fallback for ${customerEmail}`);
       }
     }
   }
@@ -58,7 +66,7 @@ Deno.serve(async (req) => {
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription;
     const customerId = sub.customer as string;
-    // Look up user by Stripe customer ID stored in metadata
+
     const { data: rows } = await supabase
       .from('neuro_state')
       .select('user_id')
@@ -66,16 +74,18 @@ Deno.serve(async (req) => {
       .limit(1);
 
     if (rows?.[0]?.user_id) {
-      await _setProStatus(rows[0].user_id, false);
-      console.log(`Pro revoked for user ${rows[0].user_id}`);
+      await _mergeState(rows[0].user_id, { isPro: false });
+      console.log(`Pro revoked for user ${rows[0].user_id} (customer ${customerId})`);
+    } else {
+      console.warn(`customer.subscription.deleted: no user found for customer ${customerId}`);
     }
   }
 
   return new Response('ok', { status: 200 });
 });
 
-async function _setProStatus(userId: string, isPro: boolean) {
-  // Merge isPro into the existing state_json
+// Shallow-merges `patch` into the existing state_json for the given user.
+async function _mergeState(userId: string, patch: Record<string, unknown>) {
   const { data: row } = await supabase
     .from('neuro_state')
     .select('state_json')
@@ -85,7 +95,7 @@ async function _setProStatus(userId: string, isPro: boolean) {
   const existing = (row?.state_json as Record<string, unknown>) ?? {};
   await supabase.from('neuro_state').upsert({
     user_id: userId,
-    state_json: { ...existing, isPro },
+    state_json: { ...existing, ...patch },
     updated_at: new Date().toISOString(),
   });
 }
