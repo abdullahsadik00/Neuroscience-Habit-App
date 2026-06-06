@@ -10,6 +10,9 @@ type QuestionKey = keyof Omit<NeuroBrainProfile, 'completedAt'>;
 interface Answer { label: string; sub: string; value: string; }
 interface Question { key: QuestionKey; text: string; icon: string; answers: Answer[]; }
 
+// 4 core questions — the minimum set needed to drive Comeback Protocol personalisation.
+// The 4 deferred dimensions (motivationSource, selfTalkPattern, accountabilityStyle, coreDriver)
+// are collected in the first weekly check-in once the user has a habit to reflect on.
 const QUESTIONS: Question[] = [
   { key: 'failureStyle', icon: '🧠', text: 'When you miss something important, what\'s your first instinct?',
     answers: [
@@ -17,14 +20,6 @@ const QUESTIONS: Question[] = [
       { label: 'Avoid thinking about it', sub: 'It\'s easier to not look at the gap', value: 'avoider' },
       { label: 'Analyse what went wrong', sub: 'I want to understand the cause before acting', value: 'analyst' },
       { label: 'Just move on', sub: 'I drift to the next thing without much processing', value: 'drifter' },
-    ],
-  },
-  { key: 'motivationSource', icon: '⚡', text: 'What usually gets you started on a habit?',
-    answers: [
-      { label: 'Who I want to become', sub: 'The identity pull is what moves me', value: 'identity' },
-      { label: 'A specific outcome', sub: 'I can see the result and I want it', value: 'outcome' },
-      { label: 'The process itself', sub: 'I like the system or the ritual', value: 'process' },
-      { label: 'Necessity', sub: 'I do it because I have to', value: 'survival' },
     ],
   },
   { key: 'peakEnergyWindow', icon: '🕐', text: 'When is your mental energy highest?',
@@ -35,14 +30,6 @@ const QUESTIONS: Question[] = [
       { label: 'It varies', sub: 'Depends on the day, sleep, and context', value: 'variable' },
     ],
   },
-  { key: 'recoverySpeed', icon: '🔄', text: 'After a setback, how long do you usually feel stuck?',
-    answers: [
-      { label: 'A few minutes', sub: 'I reset and continue fast', value: 'fast' },
-      { label: 'A few hours', sub: 'I need time to process', value: 'medium' },
-      { label: 'A few days', sub: 'I spiral before recovering', value: 'slow' },
-      { label: 'It varies', sub: 'Depends completely on the situation', value: 'variable' },
-    ],
-  },
   { key: 'primaryBlocker', icon: '🧱', text: 'What most often breaks your habits?',
     answers: [
       { label: 'Low energy', sub: 'I just don\'t have the fuel when it\'s time', value: 'energy' },
@@ -51,28 +38,12 @@ const QUESTIONS: Question[] = [
       { label: 'Life events', sub: 'External circumstances knock me off track', value: 'life' },
     ],
   },
-  { key: 'selfTalkPattern', icon: '💬', text: 'What does your inner voice say after missing a habit?',
+  { key: 'recoverySpeed', icon: '🔄', text: 'After a setback, how long do you usually feel stuck?',
     answers: [
-      { label: '"I should have done better"', sub: 'Self-critical and exacting', value: 'self-critical' },
-      { label: '"I don\'t want to think about it"', sub: 'I push it away', value: 'avoidant' },
-      { label: '"Let me figure out why"', sub: 'Analytical and curious', value: 'rational' },
-      { label: '"Maybe this just isn\'t for me"', sub: 'Defeated or hopeless', value: 'hopeless' },
-    ],
-  },
-  { key: 'accountabilityStyle', icon: '📊', text: 'How do you best hold yourself accountable?',
-    answers: [
-      { label: 'Tracking and metrics', sub: 'Numbers and streaks keep me honest', value: 'tracking' },
-      { label: 'Social commitment', sub: 'Knowing someone else knows helps', value: 'external' },
-      { label: 'Systems and protocols', sub: 'I follow a clear repeatable process', value: 'systems' },
-      { label: 'I don\'t rely on accountability', sub: 'I prefer low-pressure approaches', value: 'none' },
-    ],
-  },
-  { key: 'coreDriver', icon: '🎯', text: 'What do you actually want your habits to do for you?',
-    answers: [
-      { label: 'Feel better daily', sub: 'More energy, less stress, better mood', value: 'feel-better' },
-      { label: 'Perform at a higher level', sub: 'Output, capability, results', value: 'perform-better' },
-      { label: 'Become a specific person', sub: 'Identity shift is the real goal', value: 'become-someone' },
-      { label: 'Survive and function', sub: 'I just need to hold it together', value: 'survive' },
+      { label: 'A few minutes', sub: 'I reset and continue fast', value: 'fast' },
+      { label: 'A few hours', sub: 'I need time to process', value: 'medium' },
+      { label: 'A few days', sub: 'I spiral before recovering', value: 'slow' },
+      { label: 'It varies', sub: 'Depends completely on the situation', value: 'variable' },
     ],
   },
 ];
@@ -279,13 +250,9 @@ export default function BrainAssessment() {
             onClick={() => {
               const SKIP_DEFAULTS: Record<string, string> = {
                 failureStyle: 'analyst',
-                motivationSource: 'outcome',
                 peakEnergyWindow: 'variable',
-                recoverySpeed: 'variable',
                 primaryBlocker: 'distraction',
-                selfTalkPattern: 'avoidant',
-                accountabilityStyle: 'none',
-                coreDriver: 'perform-better',
+                recoverySpeed: 'variable',
               };
               advance(SKIP_DEFAULTS[question.key] ?? 'analyst');
             }}

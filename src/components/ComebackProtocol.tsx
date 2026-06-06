@@ -46,19 +46,7 @@ export default function ComebackProtocol({ missedStacks, brainProfile, onComplet
     }
   }
 
-  function handleSkip() {
-    onComplete(stack.id, stack.title, false);
-    const next = currentIndex + 1;
-    if (next < missedStacks.length) {
-      setCurrentIndex(next);
-      setChecked([false, false, false]);
-      setPhase('reframe');
-    } else {
-      onDismiss();
-    }
-  }
-
-  const isLast = currentIndex === missedStacks.length - 1;
+const isLast = currentIndex === missedStacks.length - 1;
   const totalCount = missedStacks.length;
 
   return (
@@ -185,12 +173,6 @@ export default function ComebackProtocol({ missedStacks, brainProfile, onComplet
                     : 'Complete at least one action'}
                 </button>
 
-                <button
-                  onClick={handleSkip}
-                  className="w-full mt-3 py-2 text-[12px] text-[color:var(--text-3)] hover:text-[color:var(--text-2)] transition-colors"
-                >
-                  Skip actions — just acknowledge
-                </button>
               </motion.div>
             )}
           </AnimatePresence>

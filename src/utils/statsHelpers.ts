@@ -1,4 +1,4 @@
-import type { NeuroStack, NeuroSwap, ComebackRecord, Neurochemistry } from '../store/useNeuroStore';
+import type { NeuroStack, NeuroSwap, ComebackRecord, Neurochemistry, NeuroLog } from '../store/useNeuroStore';
 import { getLocalDateString } from './neuroHelpers';
 
 export interface WeekDay {
@@ -104,6 +104,81 @@ export function getComebacksThisMonth(comebacks: ComebackRecord[]): number {
   const now = new Date();
   const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   return comebacks.filter((c) => c.date.startsWith(monthStr)).length;
+}
+
+export function calcResilienceScore(
+  comebacks: ComebackRecord[],
+  logs: NeuroLog[],
+  stacks: NeuroStack[]
+): number {
+  // 60 pts: quality of comeback completions (did the user actually do the micro-actions?)
+  const comebackBase = comebacks.length > 0
+    ? (comebacks.filter(c => c.microActionsCompleted).length / comebacks.length) * 60
+    : 0;
+
+  // Up to 20 pts: urge surfing in last 30 days (4 pts each, capped at 5 surfs)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentSurfs = logs.filter(
+    l => l.type === 'urge_surf' && new Date(l.timestamp) >= thirtyDaysAgo
+  ).length;
+  const urgeSurfBonus = Math.min(recentSurfs * 4, 20);
+
+  // Up to 20 pts: average myelination across active habits (pathway strength proxy)
+  const activeStacks = stacks.filter(s => s.isActive);
+  const avgMyelination = activeStacks.length > 0
+    ? activeStacks.reduce((sum, s) => sum + s.myelinationLevel, 0) / activeStacks.length
+    : 0;
+  const consistencyBonus = Math.round(avgMyelination * 0.2);
+
+  return Math.min(Math.round(comebackBase + urgeSurfBonus + consistencyBonus), 100);
+}
+
+export interface HeatmapDay {
+  dateStr: string;
+  completions: number;
+  hasComeback: boolean;
+  isMiss: boolean;
+  isToday: boolean;
+  isFuture: boolean;
+}
+
+export function getYearGrid(stacks: NeuroStack[], comebacks: ComebackRecord[]): HeatmapDay[][] {
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  const today = getLocalDateString(todayDate);
+  const activeStacks = stacks.filter(s => s.isActive);
+
+  // Start ~52 weeks ago, aligned to Sunday so columns are full weeks
+  const startDate = new Date(todayDate);
+  startDate.setDate(startDate.getDate() - 364);
+  startDate.setDate(startDate.getDate() - startDate.getDay());
+
+  const cursor = new Date(startDate);
+  const weeks: HeatmapDay[][] = [];
+
+  for (let w = 0; w < 53; w++) {
+    const week: HeatmapDay[] = [];
+    for (let d = 0; d < 7; d++) {
+      const dateStr = getLocalDateString(cursor);
+      const isFuture = cursor > todayDate;
+      const isToday = dateStr === today;
+
+      const completions = activeStacks.filter(
+        s => s.createdAt.slice(0, 10) <= dateStr && s.completions.includes(dateStr)
+      ).length;
+
+      const hasComeback = comebacks.some(c => c.date === dateStr);
+
+      const habitsExistedCount = activeStacks.filter(s => s.createdAt.slice(0, 10) <= dateStr).length;
+      const isMiss = !isFuture && !isToday && habitsExistedCount > 0 && completions === 0 && !hasComeback;
+
+      week.push({ dateStr, completions, hasComeback, isMiss, isToday, isFuture });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+  return weeks;
 }
 
 export function getRecoveryInsights(

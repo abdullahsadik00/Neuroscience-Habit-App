@@ -4,8 +4,8 @@ import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon, ChevronDown } from 'luci
 import { useNeuroStore } from '../store/useNeuroStore';
 import { useTheme } from '../contexts/ThemeContext';
 import ComebackProtocol from '../components/ComebackProtocol';
-import NeurochemHUD from '../components/NeurochemHUD';
 import StatsBar from '../components/StatsBar';
+import ResilienceShareCard from '../components/ResilienceShareCard';
 import HabitCard from '../components/HabitCard';
 import SwapCard from '../components/SwapCard';
 import RecoveryPlaybook from '../components/RecoveryPlaybook';
@@ -21,13 +21,15 @@ import type { RecalibrationSuggestion } from '../store/useNeuroStore';
 import { getMissedStacks } from '../utils/comebackHelpers';
 import {
   calcRecoveryRate,
-  calcBrainScore,
+  calcResilienceScore,
   getBestStreak,
   getDaysInSystem,
   getComebacksThisMonth,
   getRecoveryInsights,
   calcComebackStreak,
+  getYearGrid,
 } from '../utils/statsHelpers';
+import { getArchetypeName } from '../utils/brainHelpers';
 
 const CHECKIN_INTERVAL_DAYS = 7;
 
@@ -92,9 +94,9 @@ function ArchivedSection({
 
 export default function Dashboard() {
   const {
-    stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
+    stacks, swaps, logs, comebacks, dopaminePoints, userProfile,
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
-    addNeuroSwap, acknowledgeComeback, getTodayComebackIds, decayNeurochemistry,
+    addNeuroSwap, acknowledgeComeback, getTodayComebackIds,
     lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration, updateNeuroStack,
     pendingMilestone, clearMilestone,
   } = useNeuroStore();
@@ -123,11 +125,6 @@ export default function Dashboard() {
 
   const FREE_COMEBACK_LIMIT = 3;
 
-  useEffect(() => {
-    const interval = setInterval(() => decayNeurochemistry(), 60000);
-    return () => clearInterval(interval);
-  }, [decayNeurochemistry]);
-
   // On mount: if there are missed stacks but the free limit is hit, show gate instead
   useEffect(() => {
     if (missedStacks.length > 0 && !isPro && comebacksThisMonth >= FREE_COMEBACK_LIMIT) {
@@ -141,16 +138,18 @@ export default function Dashboard() {
   const activeSwaps = swaps.filter((s) => s.isActive);
 
   const recoveryRate = calcRecoveryRate(comebacks);
-  const brainScore = calcBrainScore(stacks, comebacks, neurochemistry);
+  const resilienceScore = calcResilienceScore(comebacks, logs, stacks);
   const bestStreak = getBestStreak(stacks);
   const daysInSystem = getDaysInSystem(stacks);
   const comebacksThisMonth = getComebacksThisMonth(comebacks);
   const comebackStreak = calcComebackStreak(comebacks);
   const insights = getRecoveryInsights(stacks, comebacks, swaps);
+  const yearGrid = getYearGrid(stacks, comebacks);
+  const archetype = brainProfile ? getArchetypeName(brainProfile) : 'Your Recovery Story';
 
-  const brainScoreColor =
-    brainScore >= 70 ? 'text-emerald-600 dark:text-emerald-400'
-    : brainScore >= 40 ? 'text-amber-600 dark:text-amber-400'
+  const resilienceScoreColor =
+    resilienceScore >= 70 ? 'text-emerald-600 dark:text-emerald-400'
+    : resilienceScore >= 40 ? 'text-amber-600 dark:text-amber-400'
     : 'text-rose-600 dark:text-rose-400';
 
   return (
@@ -239,12 +238,12 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* Brain Score */}
+            {/* Resilience Score */}
             <div className="card px-3 py-2.5 text-center min-w-[58px]">
-              <div className={`text-[18px] font-bold tracking-tight leading-none ${brainScoreColor}`}>
-                {brainScore}
+              <div className={`text-[18px] font-bold tracking-tight leading-none ${resilienceScoreColor}`}>
+                {resilienceScore}
               </div>
-              <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Brain</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Resilience</div>
             </div>
 
             {/* DP Points */}
@@ -272,12 +271,6 @@ export default function Dashboard() {
           onUpgrade={() => window.open('https://neurosync.app/upgrade', '_blank')}
         />
 
-        {/* ── NEUROCHEMISTRY ── */}
-        <section>
-          <SectionHeader label="Neurochemistry" />
-          <NeurochemHUD neurochemistry={neurochemistry} logs={logs} />
-        </section>
-
         {/* ── STATS ── */}
         <section>
           <SectionHeader label="Your Numbers" />
@@ -287,7 +280,7 @@ export default function Dashboard() {
             bestStreak={bestStreak}
             activeHabits={activeStacks.length}
             daysInSystem={daysInSystem}
-            brainScore={brainScore}
+            resilienceScore={resilienceScore}
             comebackStreak={comebackStreak}
           />
         </section>
@@ -302,6 +295,18 @@ export default function Dashboard() {
 
         {/* ── RECOVERY PLAYBOOK ── */}
         <RecoveryPlaybook comebacks={comebacks} stacks={stacks} insights={insights} />
+
+        {/* ── RECOVERY STORY ── */}
+        <section>
+          <SectionHeader label="Recovery Story" />
+          <ResilienceShareCard
+            archetype={archetype}
+            resilienceScore={resilienceScore}
+            comebackStreak={comebackStreak}
+            totalComebacks={comebacks.length}
+            weeks={yearGrid}
+          />
+        </section>
 
         {/* ── TABS ── */}
         <div className="card p-1 flex gap-1">
