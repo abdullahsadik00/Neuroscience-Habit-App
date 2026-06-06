@@ -103,6 +103,9 @@ import '../widgets/recovery_playbook.dart';   // Summary of recovery strategies 
 import '../widgets/brain_profile_card.dart';  // Shows the user's neuro-archetype profile
 import '../widgets/share_card.dart';          // The visual card that gets screenshotted and shared
 import '../widgets/year_heatmap_card.dart';   // 52-week GitHub-style recovery heatmap + share button
+import '../widgets/freemium_banner.dart';     // Inline strip showing monthly comeback usage for free users
+import '../widgets/comeback_gate_modal.dart'; // Modal shown when free-tier comeback limit is reached
+import '../widgets/milestone_celebration.dart'; // Rich bottom-toast for myelination milestone events
 
 // The Pro upgrade paywall page; pushed via Navigator.
 import 'upgrade_page.dart';
@@ -279,62 +282,27 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
   // Milestone celebration
   // ---------------------------------------------------------------------------
 
-  /// Displays a custom SnackBar celebrating a myelination milestone.
+  /// Shows the rich [MilestoneCelebration] overlay for a myelination milestone.
   /// Called when [milestoneEventProvider] fires a non-null event.
   ///
   /// [habitTitle] — the name of the habit that hit a milestone (e.g. "Morning Run")
-  /// [milestone]  — the percentage milestone reached (e.g. 25, 50, 75, 100)
+  /// [milestone]  — the percentage milestone reached (10 / 25 / 50 / 75 / 100)
   void _showMilestoneCelebration(String habitTitle, int milestone) {
-    // ScaffoldMessenger manages SnackBars for the nearest Scaffold ancestor.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 4), // Auto-dismiss after 4 seconds
-        backgroundColor: Colors.transparent,  // We draw our own styled container
-        elevation: 0,                         // Remove the default shadow
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            // Linear gradient from indigo to purple for a premium look
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-            ),
-            borderRadius: BorderRadius.circular(14), // Rounded corners
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6366F1).withOpacity(0.4), // Semi-transparent indigo glow
-                blurRadius: 16,
-                offset: const Offset(0, 4), // Shadow drops 4px downward
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Brain emoji as a decorative icon
-              const Text('🧠', style: TextStyle(fontSize: 24)),
-              const SizedBox(width: 12), // Horizontal spacer
-              Expanded( // Expanded makes this Column fill remaining row width
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
-                  mainAxisSize: MainAxisSize.min, // Column only as tall as its children
-                  children: [
-                    Text(
-                      '$milestone% Neural Pathway!', // String interpolation — $ inserts the variable value
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      '"$habitTitle" is becoming automatic.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    showMilestoneCelebration(context, habitTitle: habitTitle, milestone: milestone);
+  }
+
+  /// Shows the [ComebackGateModal] when the user taps the locked comeback banner.
+  void _showComebackGate(int used) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (_) => ComebackGateModal(
+        used: used,
+        onUpgrade: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UpgradePage()),
         ),
+        onDismiss: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -625,9 +593,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
 
                 const SizedBox(height: 12), // Vertical spacer of 12 logical pixels
 
-                // StatsBar shows brain score, comeback streak, best streak, recovery rate.
-                // `delay: 100.ms` — the `.ms` extension converts an int to a Duration
-                // (100 milliseconds). The fade-in animation starts 100ms after mount.
+                // StatsBar shows resilience score, comeback streak, best streak, recovery rate.
                 StatsBar(
                   resilienceScore: resilienceScore,
                   comebackStreak: comebackStreak,
@@ -637,12 +603,32 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
 
                 const SizedBox(height: 12),
 
-                // Conditionally show the ComebackProtocolBanner only when:
-                //   - the user is allowed to see comebacks (free limit or Pro), AND
-                //   - there are actually missed habits to recover.
-                // `if (condition) widget` inside a `[]` is Dart's "collection-if" syntax.
-                if (canShowComeback && missedStacks.isNotEmpty)
-                  ComebackProtocolBanner(missedStacks: missedStacks),
+                // FreemiumBanner — invisible for Pro users; shows monthly comeback
+                // usage for free-tier users. Tapping "Upgrade" navigates to UpgradePage.
+                FreemiumBanner(
+                  comebacksThisMonth: camebacksThisMonth,
+                  isPro: state.isPro,
+                  onUpgrade: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UpgradePage()),
+                  ),
+                ),
+
+                if (!state.isPro && camebacksThisMonth >= 3)
+                  const SizedBox(height: 12),
+
+                // ComebackProtocolBanner — visible when the user can act on comebacks.
+                // When the monthly free limit is hit AND there are missed habits,
+                // show the banner in "locked" state that opens the gate modal on tap.
+                if (missedStacks.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  if (canShowComeback)
+                    ComebackProtocolBanner(missedStacks: missedStacks)
+                  else
+                    _LockedComebackBanner(
+                      onTap: () => _showComebackGate(camebacksThisMonth),
+                    ),
+                ],
               ],
             ),
           ),
@@ -1619,6 +1605,93 @@ class _SignOutButton extends StatelessWidget {
         // returns null (user dismissed by tapping outside).
         if (confirmed == true) await Supabase.instance.client.auth.signOut();
       },
+    );
+  }
+}
+
+// =============================================================================
+// _LockedComebackBanner
+//
+// Shown in place of ComebackProtocolBanner when the user has exhausted their
+// monthly free comeback limit.  Tapping it opens the ComebackGateModal.
+// =============================================================================
+class _LockedComebackBanner extends StatelessWidget {
+  const _LockedComebackBanner({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? const Color(0xFF1E1E2E) : Colors.white;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFEF4444).withOpacity(0.3),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.lock_outline_rounded,
+                size: 18,
+                color: Color(0xFFEF4444),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Comeback Protocol locked',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Monthly free limit reached — tap to unlock',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: onSurface.withOpacity(0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: onSurface.withOpacity(0.35),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
