@@ -5,7 +5,9 @@ export function getMissedStacks(
   stacks: NeuroStack[],
   acknowledgedTodayIds: string[]
 ): NeuroStack[] {
-  const yesterday = getLocalDateString(new Date(Date.now() - 86400000));
+  const _yesterday = new Date();
+  _yesterday.setDate(_yesterday.getDate() - 1);
+  const yesterday = getLocalDateString(_yesterday);
   const today = getLocalDateString(new Date());
 
   return stacks.filter((stack) => {

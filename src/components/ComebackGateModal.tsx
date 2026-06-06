@@ -50,11 +50,11 @@ export default function ComebackGateModal({ used, onUpgrade, onDismiss }: Props)
           Upgrade to Pro for unlimited comebacks, full Recovery Analytics, and the Recalibration Engine.
         </p>
 
-        {/* Social proof pill */}
+        {/* Value prop */}
         <div className="flex items-center gap-2 card-2 px-3 py-2 rounded-xl mb-5">
           <Zap className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
           <p className="text-[12px] text-[color:var(--text-2)]">
-            Pro users complete <span className="font-semibold text-[color:var(--text-1)]">3× more comebacks</span> and retain habits 60% longer.
+            Pro unlocks unlimited comebacks, multi-device sync, and Failure Signature analysis.
           </p>
         </div>
 

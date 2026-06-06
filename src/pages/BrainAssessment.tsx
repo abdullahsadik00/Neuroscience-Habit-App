@@ -129,8 +129,7 @@ export default function BrainAssessment() {
 
   useEffect(() => {
     if (phase === 'processing') {
-      const t = setTimeout(() => setPhase('reveal'), 1800);
-      return () => clearTimeout(t);
+      setPhase('reveal');
     }
   }, [phase]);
 
@@ -277,7 +276,19 @@ export default function BrainAssessment() {
             Question {currentQ + 1} of {QUESTIONS.length}
           </p>
           <button
-            onClick={() => advance('analyst')}
+            onClick={() => {
+              const SKIP_DEFAULTS: Record<string, string> = {
+                failureStyle: 'analyst',
+                motivationSource: 'outcome',
+                peakEnergyWindow: 'variable',
+                recoverySpeed: 'variable',
+                primaryBlocker: 'distraction',
+                selfTalkPattern: 'avoidant',
+                accountabilityStyle: 'none',
+                coreDriver: 'perform-better',
+              };
+              advance(SKIP_DEFAULTS[question.key] ?? 'analyst');
+            }}
             className="text-[12px] font-medium text-[color:var(--text-3)] hover:text-[color:var(--text-2)] transition-colors"
           >
             Skip →

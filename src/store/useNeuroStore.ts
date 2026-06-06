@@ -590,7 +590,8 @@ export const useNeuroStore = create<NeuroState>()(
                         reward: template.reward,
                         completions: [],
                         streak: 0,
-                        myelinationLevel: 0,
+                        // Preserve half the neural pathway built — scaling down continues the same wiring
+                        myelinationLevel: Math.round(s.myelinationLevel * 0.5),
                       }
                     : s
                 );
@@ -691,7 +692,10 @@ export const useNeuroStore = create<NeuroState>()(
         // v0→v2: if user already had habits saved, skip onboarding
         if (fromVersion < 2) {
           const stacks = state.stacks as unknown[] | undefined;
-          state.onboardingComplete = Array.isArray(stacks) && stacks.length > 0;
+          const hasHabits = Array.isArray(stacks) && stacks.length > 0;
+          state.onboardingComplete = hasHabits;
+          // Prevent returning users from seeing the blueprint screen again after migration
+          if (hasHabits) state.blueprintAccepted = true;
         }
         return state;
       },

@@ -68,6 +68,7 @@ export function runRecalibration(
   const activeStacks = stacks.filter(s => s.isActive);
   const last14 = lastNDays(14);
   const last7 = lastNDays(7);
+  // Mutable — accumulates suggested replacement IDs so no two suggestions pick the same template
   const usedTemplateIds = activeStacks.map(s =>
     HABIT_LIBRARY.find(h => h.title === s.title)?.id ?? ''
   ).filter(Boolean);
@@ -101,6 +102,7 @@ export function runRecalibration(
     if (rate14Zero === 0 && daysOld >= 14) {
       const replacementId = findReplacement(stack, usedTemplateIds);
       if (replacementId) {
+        usedTemplateIds.push(replacementId); // Reserve this template so the next habit can't pick it too
         const replacement = HABIT_LIBRARY.find(h => h.id === replacementId);
         if (replacement) {
           suggestions.push({

@@ -94,7 +94,7 @@ export default function Dashboard() {
   const {
     stacks, swaps, logs, comebacks, neurochemistry, dopaminePoints, userProfile,
     isPro, brainProfile, completeNeuroStack, logUrgeSurf, logSlip, addNeuroStack,
-    addNeuroSwap, acknowledgeComeback, getTodayComebackIds, upgradeToPro, decayNeurochemistry,
+    addNeuroSwap, acknowledgeComeback, getTodayComebackIds, decayNeurochemistry,
     lastCheckinDate, submitCheckin, checkinHistory, applyRecalibration, updateNeuroStack,
     pendingMilestone, clearMilestone,
   } = useNeuroStore();
@@ -194,7 +194,7 @@ export default function Dashboard() {
         {showComebackGate && (
           <ComebackGateModal
             used={comebacksThisMonth}
-            onUpgrade={() => { upgradeToPro(); setShowComebackGate(false); setShowComeback(true); }}
+            onUpgrade={() => { setShowComebackGate(false); window.open('https://neurosync.app/upgrade', '_blank'); }}
             onDismiss={() => setShowComebackGate(false)}
           />
         )}
@@ -268,7 +268,7 @@ export default function Dashboard() {
         <FreemiumBanner
           comebacksThisMonth={comebacksThisMonth}
           isPro={isPro}
-          onUpgrade={upgradeToPro}
+          onUpgrade={() => window.open('https://neurosync.app/upgrade', '_blank')}
         />
 
         {/* ── NEUROCHEMISTRY ── */}
