@@ -204,6 +204,7 @@ export default function Dashboard() {
       {showComeback && missedStacks.length > 0 && (
         <ComebackProtocol
           missedStacks={missedStacks}
+          brainProfile={brainProfile}
           onComplete={(stackId, stackTitle, microActionsCompleted) => {
             acknowledgeComeback(stackId, stackTitle, microActionsCompleted);
           }}

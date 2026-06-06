@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckSquare, Square, X } from 'lucide-react';
-import type { NeuroStack } from '../store/useNeuroStore';
+import type { NeuroStack, NeuroBrainProfile } from '../store/useNeuroStore';
 import { getComebackMessage, generateMicroActions, getDaysMissed } from '../utils/comebackHelpers';
+import { getBrainAwareReframe, getBrainAwareMicroActions, getFailureStyleLabel } from '../utils/brainHelpers';
 
 interface Props {
   missedStacks: NeuroStack[];
+  brainProfile: NeuroBrainProfile | null;
   onComplete: (stackId: string, stackTitle: string, microActionsCompleted: boolean) => void;
   onDismiss: () => void;
 }
 
-export default function ComebackProtocol({ missedStacks, onComplete, onDismiss }: Props) {
+export default function ComebackProtocol({ missedStacks, brainProfile, onComplete, onDismiss }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [checked, setChecked] = useState<boolean[]>([false, false, false]);
   const [phase, setPhase] = useState<'reframe' | 'actions'>('reframe');
@@ -19,8 +21,12 @@ export default function ComebackProtocol({ missedStacks, onComplete, onDismiss }
   if (!stack) return null;
 
   const daysMissed = getDaysMissed(stack);
-  const message = getComebackMessage(daysMissed);
-  const microActions = generateMicroActions(stack);
+  const message = brainProfile
+    ? getBrainAwareReframe(brainProfile, daysMissed)
+    : getComebackMessage(daysMissed);
+  const microActions = brainProfile
+    ? getBrainAwareMicroActions(stack, brainProfile)
+    : generateMicroActions(stack);
   const allChecked = checked.every(Boolean);
   const anyChecked = checked.some(Boolean);
 
@@ -100,6 +106,11 @@ export default function ComebackProtocol({ missedStacks, onComplete, onDismiss }
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.18 }}
               >
+                {brainProfile && (
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-[color:var(--text-3)] mb-3">
+                    For {getFailureStyleLabel(brainProfile.failureStyle)}s · {brainProfile.peakEnergyWindow} energy
+                  </p>
+                )}
                 <div className="card-2 p-5 rounded-xl mb-5">
                   <p className="text-[16px] font-semibold text-amber-600 dark:text-amber-300 mb-2 leading-snug">
                     {message.headline}
@@ -132,7 +143,9 @@ export default function ComebackProtocol({ missedStacks, onComplete, onDismiss }
                 transition={{ duration: 0.18 }}
               >
                 <p className="text-[13px] text-[color:var(--text-2)] mb-4 leading-relaxed">
-                  Three micro-actions. Do any one and you are continuing — not restarting.
+                  {brainProfile
+                    ? `Actions matched to your ${brainProfile.peakEnergyWindow} energy window and ${brainProfile.primaryBlocker} blocker. Do any one.`
+                    : 'Three micro-actions. Do any one and you are continuing — not restarting.'}
                 </p>
                 <div className="flex flex-col gap-2.5 mb-5">
                   {microActions.map((action, i) => (
