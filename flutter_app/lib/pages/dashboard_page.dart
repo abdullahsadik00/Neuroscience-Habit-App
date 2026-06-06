@@ -102,6 +102,7 @@ import '../widgets/recalibration_sheet.dart'; // Suggests habit adjustments base
 import '../widgets/recovery_playbook.dart';   // Summary of recovery strategies in the Activity tab
 import '../widgets/brain_profile_card.dart';  // Shows the user's neuro-archetype profile
 import '../widgets/share_card.dart';          // The visual card that gets screenshotted and shared
+import '../widgets/year_heatmap_card.dart';   // 52-week GitHub-style recovery heatmap + share button
 
 // The Pro upgrade paywall page; pushed via Navigator.
 import 'upgrade_page.dart';
@@ -461,7 +462,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
     final canShowComeback = state.isPro || camebacksThisMonth < 3;
 
     // Derived stats displayed in the StatsBar.
-    final brainScore     = calcBrainScore(state.stacks, state.comebacks, state.neurochemistry);
     final comebackStreak = getComebackStreak(state.comebacks);
     final bestStreak     = getBestStreak(state.stacks);
     final recoveryRate   = calcRecoveryRate(state.comebacks);
@@ -475,6 +475,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
     );
     final resilienceLabel = getResilienceLabel(resilienceScore);
     final resilienceTip   = getResilienceTip(resilienceScore, state.brainProfile);
+
+    // 52-week grid passed to the Activity tab's YearHeatmapCard.
+    final yearGrid = getYearGrid(state.stacks, state.comebacks);
+    final archetypeName = state.brainProfile != null ? _archetypeName(state.brainProfile!) : null;
 
     // -------------------------------------------------------------------------
     // WIDGET TREE
@@ -625,7 +629,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
                 // `delay: 100.ms` — the `.ms` extension converts an int to a Duration
                 // (100 milliseconds). The fade-in animation starts 100ms after mount.
                 StatsBar(
-                  brainScore: brainScore,
+                  resilienceScore: resilienceScore,
                   comebackStreak: comebackStreak,
                   bestStreak: bestStreak,
                   recoveryRate: recoveryRate,
@@ -678,6 +682,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage>
                   comebacks: state.comebacks,
                   swaps: state.swaps,
                   brainProfile: state.brainProfile,
+                  yearGrid: yearGrid,
+                  resilienceScore: resilienceScore,
+                  comebackStreak: comebackStreak,
+                  archetypeName: archetypeName,
                 ),
               ],
             ),
@@ -1102,18 +1110,29 @@ class _ActivityTab extends StatelessWidget {
   /// All activity log entries (completions, slips, urge surfs, comebacks).
   final List<NeuroLog> logs;
 
-  /// All habit stacks (used by RecoveryPlaybook).
+  /// All habit stacks (used by RecoveryPlaybook and YearHeatmapCard).
   final List<NeuroStack> stacks;
 
-  /// All comeback records (used by RecoveryPlaybook).
+  /// All comeback records (used by RecoveryPlaybook and YearHeatmapCard).
   final List<ComebackRecord> comebacks;
 
   /// All swap records (used by RecoveryPlaybook).
   final List<NeuroSwap> swaps;
 
   /// The user's brain profile, or null if they haven't taken the assessment.
-  /// The `?` after the type means this field is *nullable*.
   final NeuroBrainProfile? brainProfile;
+
+  /// 52-week heatmap grid for YearHeatmapCard.
+  final List<List<HeatmapDay>> yearGrid;
+
+  /// Adaptability Score (0–1000) for the share text.
+  final int resilienceScore;
+
+  /// Current comeback streak for the share text.
+  final int comebackStreak;
+
+  /// Archetype name for the share text (e.g. "The Resilient Analyst"), or null.
+  final String? archetypeName;
 
   const _ActivityTab({
     required this.logs,
@@ -1121,6 +1140,10 @@ class _ActivityTab extends StatelessWidget {
     required this.comebacks,
     required this.swaps,
     required this.brainProfile,
+    required this.yearGrid,
+    required this.resilienceScore,
+    required this.comebackStreak,
+    this.archetypeName,
   });
 
   @override
@@ -1141,6 +1164,16 @@ class _ActivityTab extends StatelessWidget {
               children: [
                 // The Recovery Playbook summarises recovery patterns and tips.
                 RecoveryPlaybook(stacks: stacks, comebacks: comebacks, swaps: swaps),
+
+                const SizedBox(height: 16),
+
+                // Year heatmap — GitHub-style 52-week recovery grid with share button.
+                YearHeatmapCard(
+                  weeks: yearGrid,
+                  resilienceScore: resilienceScore,
+                  comebackStreak: comebackStreak,
+                  archetype: archetypeName,
+                ),
 
                 // Only show the brain profile card if the user has taken the assessment.
                 // `...[...]` is a spread inside a collection-if — inserts the

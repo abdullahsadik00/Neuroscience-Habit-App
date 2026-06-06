@@ -502,3 +502,120 @@ List<String> getRecoveryInsights(
   // then .toList() materialises them into a concrete List<String>.
   return insights.take(3).toList();
 }
+
+// =============================================================================
+// HeatmapDay — data class for a single cell in the year heatmap
+// =============================================================================
+
+/// Represents one day's state in the 52-week recovery heatmap.
+///
+/// Priority (highest colour wins): comeback > completed > liteMode > missed > empty.
+class HeatmapDay {
+  /// The date this cell represents, formatted as "YYYY-MM-DD".
+  final String dateStr;
+
+  /// Number of active habits completed on this day.
+  final int completions;
+
+  /// Whether a Comeback Protocol was acknowledged on this day.
+  final bool hasComeback;
+
+  /// Whether Lite Mode was activated on any habit on this day.
+  final bool hasLiteMode;
+
+  /// True when a habit existed but nothing was completed (and it is not today
+  /// or a future date).
+  final bool isMiss;
+
+  /// True when this cell represents today's date.
+  final bool isToday;
+
+  /// True when this date is in the future (no data to show).
+  final bool isFuture;
+
+  const HeatmapDay({
+    required this.dateStr,
+    required this.completions,
+    required this.hasComeback,
+    required this.hasLiteMode,
+    required this.isMiss,
+    required this.isToday,
+    required this.isFuture,
+  });
+}
+
+// =============================================================================
+// getYearGrid
+//
+// Builds the 52-week GitHub-style contribution grid used by YearHeatmapCard.
+// Returns a list of 53 week-columns, each containing 7 HeatmapDay cells
+// ordered Sunday (index 0) through Saturday (index 6).
+// =============================================================================
+
+/// Computes the full-year heatmap grid (53 weeks × 7 days) across all active habits.
+///
+/// Parameters:
+///   [stacks]    — all habit stacks (active + archived; only active ones affect the grid).
+///   [comebacks] — all comeback records.
+///
+/// Returns a [List<List<HeatmapDay>>] with 53 outer elements (weeks, left→right)
+/// each containing 7 [HeatmapDay] elements (Sun–Sat, top→bottom).
+List<List<HeatmapDay>> getYearGrid(
+  List<NeuroStack> stacks,
+  List<ComebackRecord> comebacks,
+) {
+  final now = DateTime.now();
+  // Normalise to midnight so date comparisons are purely calendar-day based.
+  final today = DateTime(now.year, now.month, now.day);
+  final todayStr = getLocalDateString(today);
+
+  final activeStacks = stacks.where((s) => s.isActive).toList();
+  // O(1) set lookups for comeback dates.
+  final comebackDates = comebacks.map((c) => c.date).toSet();
+
+  // Start ~52 weeks (364 days) ago, then rewind to the nearest Sunday so every
+  // column aligns with a full Sun–Sat week.
+  // Dart weekday: 1=Mon … 7=Sun.  Sunday is (weekday % 7) days back.
+  var startDate = today.subtract(const Duration(days: 364));
+  startDate = startDate.subtract(Duration(days: startDate.weekday % 7));
+
+  final weeks = <List<HeatmapDay>>[];
+  var cursor = startDate;
+
+  for (int w = 0; w < 53; w++) {
+    final week = <HeatmapDay>[];
+    for (int d = 0; d < 7; d++) {
+      final dateStr = getLocalDateString(cursor);
+      final isFuture = cursor.isAfter(today);
+      final isToday = dateStr == todayStr;
+
+      final completions = activeStacks.where((s) {
+        final created = s.createdAt.substring(0, 10);
+        return created.compareTo(dateStr) <= 0 && s.completions.contains(dateStr);
+      }).length;
+
+      final hasComeback = comebackDates.contains(dateStr);
+
+      final hasLiteMode = activeStacks.any((s) => s.liteModeDates.contains(dateStr));
+
+      final habitsExisted = activeStacks.where(
+        (s) => s.createdAt.substring(0, 10).compareTo(dateStr) <= 0,
+      ).length;
+      final isMiss = !isFuture && !isToday && habitsExisted > 0 &&
+          completions == 0 && !hasComeback && !hasLiteMode;
+
+      week.add(HeatmapDay(
+        dateStr: dateStr,
+        completions: completions,
+        hasComeback: hasComeback,
+        hasLiteMode: hasLiteMode,
+        isMiss: isMiss,
+        isToday: isToday,
+        isFuture: isFuture,
+      ));
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    weeks.add(week);
+  }
+  return weeks;
+}

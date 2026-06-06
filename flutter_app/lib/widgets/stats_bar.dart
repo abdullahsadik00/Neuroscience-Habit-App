@@ -3,14 +3,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 
 class StatsBar extends StatelessWidget {
-  final int brainScore;
+  final int resilienceScore;
   final int comebackStreak;
   final int bestStreak;
   final double recoveryRate;
 
   const StatsBar({
     super.key,
-    required this.brainScore,
+    required this.resilienceScore,
     required this.comebackStreak,
     required this.bestStreak,
     required this.recoveryRate,
@@ -28,9 +28,9 @@ class StatsBar extends StatelessWidget {
       child: Row(
         children: [
           _Stat(
-            label: 'Brain Score',
-            value: '$brainScore',
-            icon: Icons.psychology,
+            label: 'Resilience',
+            value: '$resilienceScore',
+            icon: Icons.shield_outlined,
             color: const Color(0xFF6366F1),
           ).animate().fadeIn(delay: 50.ms),
           _Divider(),
