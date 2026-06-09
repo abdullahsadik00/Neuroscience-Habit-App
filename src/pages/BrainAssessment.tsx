@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeuroStore } from '../store/useNeuroStore';
 import { useTheme } from '../contexts/ThemeContext';
 import type { NeuroBrainProfile } from '../store/useNeuroStore';
 import { getArchetypeName, getProfileInsights } from '../utils/brainHelpers';
+import { trackEvent } from '../utils/analytics';
 
 type QuestionKey = keyof Omit<NeuroBrainProfile, 'completedAt'>;
 interface Answer { label: string; sub: string; value: string; }
@@ -49,7 +50,7 @@ const QUESTIONS: Question[] = [
 ];
 
 type Answers = Partial<Record<QuestionKey, string>>;
-type Phase = 'questions' | 'processing' | 'reveal';
+type Phase = 'questions' | 'reveal';
 
 export default function BrainAssessment() {
   const setBrainProfile = useNeuroStore(s => s.setBrainProfile);
@@ -59,7 +60,6 @@ export default function BrainAssessment() {
   const [answers, setAnswers] = useState<Answers>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('questions');
-  const [dir, setDir] = useState(1);
   const [profile, setProfile] = useState<NeuroBrainProfile | null>(null);
 
   const question = QUESTIONS[currentQ];
@@ -76,7 +76,6 @@ export default function BrainAssessment() {
     setAnswers(next);
 
     if (currentQ < QUESTIONS.length - 1) {
-      setDir(1);
       setTimeout(() => {
         setCurrentQ(q => q + 1);
         setSelected(null);
@@ -94,56 +93,15 @@ export default function BrainAssessment() {
         completedAt: new Date().toISOString(),
       };
       setProfile(built);
-      setPhase('processing');
-    }
-  }
-
-  useEffect(() => {
-    if (phase === 'processing') {
       setPhase('reveal');
     }
-  }, [phase]);
-
-  function handleApply() {
-    if (profile) setBrainProfile(profile);
   }
 
-  // ── Processing ──────────────────────────────────────────────────────────────
-  if (phase === 'processing') {
-    return (
-      <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] flex flex-col items-center justify-center px-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-col items-center gap-6"
-        >
-          <div className="relative w-16 h-16">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 dark:border-t-indigo-400"
-            />
-            <div className="absolute inset-2 flex items-center justify-center text-2xl">🧠</div>
-          </div>
-          <div className="text-center">
-            <p className="text-[13px] font-medium text-[color:var(--text-2)] tracking-widest uppercase mb-3">
-              Mapping your profile
-            </p>
-            <div className="flex gap-1.5 justify-center">
-              {[0, 1, 2].map(i => (
-                <motion.span
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500"
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    );
+  function handleApply() {
+    if (profile) {
+      setBrainProfile(profile);
+      trackEvent('onboarding_completed', { archetype: getArchetypeName(profile) });
+    }
   }
 
   // ── Reveal ──────────────────────────────────────────────────────────────────
@@ -167,7 +125,7 @@ export default function BrainAssessment() {
                 {archetype}
               </h1>
               <p className="text-[13px] text-[color:var(--text-2)] mt-2">
-                Based on your 8 responses — this shapes everything in the app.
+                Based on your 4 responses — this shapes everything in the app.
               </p>
             </div>
 
@@ -201,8 +159,6 @@ export default function BrainAssessment() {
                   ['Peak energy', profile.peakEnergyWindow],
                   ['Primary blocker', profile.primaryBlocker],
                   ['Recovery speed', profile.recoverySpeed],
-                  ['Accountability', profile.accountabilityStyle],
-                  ['Core driver', profile.coreDriver],
                 ] as [string, string][]).map(([label, val]) => (
                   <div key={label}>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mb-0.5">{label}</p>

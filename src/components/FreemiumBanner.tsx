@@ -1,4 +1,3 @@
-import React from 'react';
 import { Zap, Lock } from 'lucide-react';
 
 const FREE_LIMIT = 3;

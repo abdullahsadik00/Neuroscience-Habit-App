@@ -108,30 +108,27 @@ export function getComebacksThisMonth(comebacks: ComebackRecord[]): number {
 
 export function calcResilienceScore(
   comebacks: ComebackRecord[],
-  logs: NeuroLog[],
+  _logs: NeuroLog[],
   stacks: NeuroStack[]
 ): number {
-  // 60 pts: quality of comeback completions (did the user actually do the micro-actions?)
-  const comebackBase = comebacks.length > 0
-    ? (comebacks.filter(c => c.microActionsCompleted).length / comebacks.length) * 60
-    : 0;
-
-  // Up to 20 pts: urge surfing in last 30 days (4 pts each, capped at 5 surfs)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentSurfs = logs.filter(
-    l => l.type === 'urge_surf' && new Date(l.timestamp) >= thirtyDaysAgo
-  ).length;
-  const urgeSurfBonus = Math.min(recentSurfs * 4, 20);
-
-  // Up to 20 pts: average myelination across active habits (pathway strength proxy)
   const activeStacks = stacks.filter(s => s.isActive);
-  const avgMyelination = activeStacks.length > 0
-    ? activeStacks.reduce((sum, s) => sum + s.myelinationLevel, 0) / activeStacks.length
-    : 0;
-  const consistencyBonus = Math.round(avgMyelination * 0.2);
+  if (activeStacks.length === 0) return 0;
 
-  return Math.min(Math.round(comebackBase + urgeSurfBonus + consistencyBonus), 100);
+  // Component A: avg myelination (0–100) × 5 → 0–500. Rewards sustained consistency.
+  const avgMyelination =
+    activeStacks.reduce((sum, s) => sum + s.myelinationLevel, 0) / activeStacks.length;
+  const myelinationScore = Math.round(avgMyelination * 5);
+
+  // Component B: total completions × 2, capped at 300. Scales linearly with effort.
+  const totalCompletions = activeStacks.reduce((sum, s) => sum + s.completions.length, 0);
+  const completionScore = Math.min(totalCompletions * 2, 300);
+
+  // Component C: recovery rate (0–100) × 3 → 0–300. Zero for consistent users is fair —
+  // they haven't needed to recover, so this component simply doesn't apply yet.
+  const recoveryRate = calcRecoveryRate(comebacks);
+  const recoveryScore = Math.round(recoveryRate * 3);
+
+  return Math.min(myelinationScore + completionScore + recoveryScore, 1000);
 }
 
 export interface HeatmapDay {

@@ -1,5 +1,4 @@
-import React from 'react';
-import { TrendingUp, RefreshCw, Flame, Activity, Calendar, RotateCcw, Shield } from 'lucide-react';
+import { TrendingUp, RefreshCw, Flame, Calendar, RotateCcw, Shield } from 'lucide-react';
 
 interface Props {
   recoveryRate: number;

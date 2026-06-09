@@ -167,7 +167,6 @@ interface NeuroState {
   acceptBlueprint: () => void;
   submitCheckin: (record: Omit<CheckinRecord, 'id' | 'recalibrationApplied'>) => void;
   applyRecalibration: (event: RecalibrationEvent) => void;
-  upgradeToPro: () => void;
   completeOnboarding: () => void;
 
   // Global Actions
@@ -182,66 +181,6 @@ const DEFAULT_NEUROCHEMISTRY: Neurochemistry = {
   epinephrine: 50,
   gaba: 60
 };
-
-const INITIAL_STACKS: NeuroStack[] = [
-  {
-    id: 'demo-stack-1',
-    title: 'Morning Focus Alignment',
-    anchorCue: 'After I sit at my desk and open my laptop',
-    action: 'I will write down my 1 critical task and focus on it for 10 minutes',
-    reward: 'I will take a deep breath, smile, and say: "I am actively building a powerful brain!"',
-    category: 'focus',
-    acetylcholineDuration: 10,
-    myelinationLevel: 28,
-    streak: 3,
-    completions: [
-      getLocalDateString(new Date(Date.now() - 172800000)), // 2 days ago
-      getLocalDateString(new Date(Date.now() - 86400000)),  // yesterday
-      getLocalDateString(new Date())                        // today
-    ],
-    createdAt: new Date().toISOString(),
-    isActive: true
-  },
-  {
-    id: 'demo-stack-2',
-    title: 'Neuro-Reset Break',
-    anchorCue: 'Immediately after completing a deep work session',
-    action: 'I will stand up, look out the window at a distant object, and stretch my body',
-    reward: 'I will say "My focus is rested, my eyes are recovered."',
-    category: 'wellness',
-    acetylcholineDuration: 5,
-    myelinationLevel: 8,
-    streak: 1,
-    completions: [
-      getLocalDateString(new Date())
-    ],
-    createdAt: new Date().toISOString(),
-    isActive: true
-  }
-];
-
-const INITIAL_SWAPS: NeuroSwap[] = [
-  {
-    id: 'demo-swap-1',
-    title: 'Mindless Phone Checking',
-    cue: 'When I hit a hard coding bug or feel a moment of mental friction',
-    badResponse: 'Unconsciously grab my phone and check social media feeds',
-    interceptAction: 'Stand up and do 3 full deep box breaths (4s inhale, 4s hold, 4s exhale, 4s hold)',
-    frictionLevel: 3,
-    frictionSteps: [
-      'Place my phone inside a drawer in another room.',
-      'Delete immediate shortcut bookmarks from my desktop.',
-      'Switch my phone display to Grayscale to strip visual dopamine rewards.'
-    ],
-    urgeSurfingCompletions: [
-      getLocalDateString(new Date(Date.now() - 86400000)),
-      getLocalDateString(new Date())
-    ],
-    slips: [],
-    createdAt: new Date().toISOString(),
-    isActive: true
-  }
-];
 
 export const useNeuroStore = create<NeuroState>()(
   persist(
@@ -638,10 +577,6 @@ export const useNeuroStore = create<NeuroState>()(
             recalibrationLog: [event, ...state.recalibrationLog],
           };
         });
-      },
-
-      upgradeToPro: () => {
-        set({ isPro: true });
       },
 
       completeOnboarding: () => {

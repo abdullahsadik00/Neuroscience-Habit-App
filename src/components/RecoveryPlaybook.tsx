@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BookOpen, ChevronDown, ChevronUp, CheckCircle2, X, Lightbulb } from 'lucide-react';
 import type { ComebackRecord, NeuroStack } from '../store/useNeuroStore';
 

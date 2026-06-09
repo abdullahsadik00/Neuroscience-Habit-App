@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Check, X, ChevronRight, TrendingDown, RefreshCw, Zap } from 'lucide-react';
 import type { RecalibrationSuggestion, RecalibrationEvent } from '../store/useNeuroStore';
 

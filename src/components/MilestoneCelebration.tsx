@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { MilestoneEvent } from '../store/useNeuroStore';
 
 const MILESTONE_COPY: Record<number, { headline: string; science: string }> = {

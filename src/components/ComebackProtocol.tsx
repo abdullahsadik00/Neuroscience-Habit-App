@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, CheckSquare, Square, X } from 'lucide-react';
 import type { NeuroStack, NeuroBrainProfile } from '../store/useNeuroStore';
 import { getComebackMessage, generateMicroActions, getDaysMissed } from '../utils/comebackHelpers';
 import { getBrainAwareReframe, getBrainAwareMicroActions, getFailureStyleLabel } from '../utils/brainHelpers';
+import { trackEvent } from '../utils/analytics';
 
 interface Props {
   missedStacks: NeuroStack[];
@@ -35,6 +36,10 @@ export default function ComebackProtocol({ missedStacks, brainProfile, onComplet
   }
 
   function handleContinue() {
+    trackEvent('comeback_activated', {
+      microActionsCompleted: allChecked,
+      failureStyle: brainProfile?.failureStyle ?? 'unknown',
+    });
     onComplete(stack.id, stack.title, allChecked);
     const next = currentIndex + 1;
     if (next < missedStacks.length) {

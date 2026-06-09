@@ -67,7 +67,6 @@ export function runRecalibration(
   const suggestions: RecalibrationSuggestion[] = [];
   const activeStacks = stacks.filter(s => s.isActive);
   const last14 = lastNDays(14);
-  const last7 = lastNDays(7);
   // Mutable — accumulates suggested replacement IDs so no two suggestions pick the same template
   const usedTemplateIds = activeStacks.map(s =>
     HABIT_LIBRARY.find(h => h.title === s.title)?.id ?? ''

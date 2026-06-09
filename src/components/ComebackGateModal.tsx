@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Zap, X } from 'lucide-react';
 
@@ -10,7 +9,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-export default function ComebackGateModal({ used, onUpgrade, onDismiss }: Props) {
+export default function ComebackGateModal({ onUpgrade, onDismiss }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <motion.div

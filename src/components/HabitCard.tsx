@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, ArrowDown, HelpCircle, X, MoreVertical, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { NeuroStack, ComebackRecord } from '../store/useNeuroStore';
@@ -137,8 +137,6 @@ export default function HabitCard({ stack, comebacks, onComplete, onArchive }: P
             </button>
           </div>
           <span className="text-[10px] font-semibold text-[color:var(--text-2)]">
-            {stack.myelinationLevel}%
-            {' · '}
             {stack.myelinationLevel >= 86 ? 'Well-established'
               : stack.myelinationLevel >= 66 ? 'Established'
               : stack.myelinationLevel >= 41 ? 'Strengthening'

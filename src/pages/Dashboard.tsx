@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon, ChevronDown } from 'lucide-react';
 import { useNeuroStore } from '../store/useNeuroStore';
@@ -43,11 +43,9 @@ type Tab = typeof TABS[number]['key'];
 
 function ArchivedSection({
   stacks,
-  comebacks,
   onRestore,
 }: {
   stacks: import('../store/useNeuroStore').NeuroStack[];
-  comebacks: import('../store/useNeuroStore').ComebackRecord[];
   onRestore: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -112,7 +110,6 @@ export default function Dashboard() {
     const used = getComebacksThisMonth(comebacks);
     return isPro || used < 3;
   });
-  const [pendingComebackAfterUpgrade] = useState(missedStacks.length > 0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('habits');
   const [showCheckin, setShowCheckin] = useState(() => {
@@ -379,7 +376,6 @@ export default function Dashboard() {
                 {archivedStacks.length > 0 && (
                   <ArchivedSection
                     stacks={archivedStacks}
-                    comebacks={comebacks}
                     onRestore={(id) => updateNeuroStack(id, { isActive: true })}
                   />
                 )}

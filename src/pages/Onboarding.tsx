@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Brain, ArrowRight, Check, RefreshCw, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeuroStore } from '../store/useNeuroStore';

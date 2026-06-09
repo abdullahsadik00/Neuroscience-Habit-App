@@ -1,4 +1,3 @@
-import React from 'react';
 import type { WeekDay } from '../utils/statsHelpers';
 
 export default function WeeklyGrid({ days }: { days: WeekDay[] }) {

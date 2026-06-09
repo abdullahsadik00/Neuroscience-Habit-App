@@ -162,7 +162,7 @@ const BRAIN_AWARE_ACTIONS: Record<string, Record<string, string[]>> = {
 };
 
 export function getBrainAwareMicroActions(
-  stack: NeuroStack,
+  _stack: NeuroStack,
   profile: NeuroBrainProfile
 ): string[] {
   const window = profile.peakEnergyWindow;

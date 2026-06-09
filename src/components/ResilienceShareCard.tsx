@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Share2, Check } from 'lucide-react';
 import RecoveryHeatmap from './RecoveryHeatmap';
 import type { HeatmapDay } from '../utils/statsHelpers';
