@@ -8,55 +8,56 @@
   --font-sans: 'Inter', 'SF Pro Display', 'SF Pro Text', system-ui, -apple-system, sans-serif;
 }
 
-/* ── CSS Variables (theme-switched) ────────────────────────────────────────── */
+/* ── CSS Variables ──────────────────────────────────────────────────────────── */
 :root {
-  --bg:         #FAFAF8;
+  --bg:         #F7F7F5;
   --surface:    #FFFFFF;
-  --surface-2:  #F5F5F3;
-  --surface-3:  #EBEBEA;
-  --text-1:     #111111;
-  --text-2:     #555555;
-  --text-3:     #999999;
-  --border:     rgba(0, 0, 0, 0.07);
-  --border-2:   rgba(0, 0, 0, 0.11);
+  --surface-2:  #F2F2F0;
+  --surface-3:  #E8E8E6;
+  --text-1:     #1A1A1A;
+  --text-2:     #6B6B6B;
+  --text-3:     #ADADAD;
+  --border:     rgba(0, 0, 0, 0.08);
+  --border-2:   rgba(0, 0, 0, 0.12);
   --accent:     #4F46E5;
-  --accent-s:   rgba(79, 70, 229, 0.10);
+  --accent-s:   rgba(79, 70, 229, 0.08);
   --success:    #16A34A;
-  --success-s:  rgba(22, 163, 74, 0.10);
+  --success-s:  rgba(22, 163, 74, 0.08);
   --warning:    #D97706;
-  --warning-s:  rgba(217, 119, 6, 0.10);
+  --warning-s:  rgba(217, 119, 6, 0.08);
   --danger:     #DC2626;
-  --danger-s:   rgba(220, 38, 38, 0.10);
+  --danger-s:   rgba(220, 38, 38, 0.08);
 
-  --shadow-card:  0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.05);
-  --shadow-hover: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
-  --shadow-lg:    0 4px 12px rgba(0,0,0,0.07), 0 16px 40px rgba(0,0,0,0.09);
-  --shadow-modal: 0 8px 24px rgba(0,0,0,0.08), 0 32px 64px rgba(0,0,0,0.12);
+  /* Flat shadow palette — Notion-style near-zero shadows */
+  --shadow-card:  none;
+  --shadow-hover: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+  --shadow-lg:    0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.08);
+  --shadow-modal: 0 4px 16px rgba(0,0,0,0.07), 0 24px 48px rgba(0,0,0,0.10);
 }
 
 [data-theme="dark"] {
-  --bg:         #0F1115;
-  --surface:    #171923;
-  --surface-2:  #1E2230;
-  --surface-3:  #252A3A;
-  --text-1:     #F0F0EF;
-  --text-2:     #9A9AA0;
-  --text-3:     #606068;
-  --border:     rgba(255, 255, 255, 0.08);
-  --border-2:   rgba(255, 255, 255, 0.13);
+  --bg:         #111111;
+  --surface:    #1C1C1C;
+  --surface-2:  #242424;
+  --surface-3:  #2E2E2E;
+  --text-1:     #EFEFEF;
+  --text-2:     #8A8A8A;
+  --text-3:     #555555;
+  --border:     rgba(255, 255, 255, 0.07);
+  --border-2:   rgba(255, 255, 255, 0.11);
   --accent:     #818CF8;
-  --accent-s:   rgba(129, 140, 248, 0.12);
+  --accent-s:   rgba(129, 140, 248, 0.10);
   --success:    #22C55E;
-  --success-s:  rgba(34, 197, 94, 0.12);
+  --success-s:  rgba(34, 197, 94, 0.10);
   --warning:    #FBBF24;
-  --warning-s:  rgba(251, 191, 36, 0.12);
+  --warning-s:  rgba(251, 191, 36, 0.10);
   --danger:     #EF4444;
-  --danger-s:   rgba(239, 68, 68, 0.12);
+  --danger-s:   rgba(239, 68, 68, 0.10);
 
-  --shadow-card:  0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-hover: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.5);
-  --shadow-lg:    0 4px 16px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.6);
-  --shadow-modal: 0 8px 32px rgba(0,0,0,0.7), 0 32px 64px rgba(0,0,0,0.8);
+  --shadow-card:  none;
+  --shadow-hover: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+  --shadow-lg:    0 2px 8px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
+  --shadow-modal: 0 4px 16px rgba(0,0,0,0.50), 0 24px 48px rgba(0,0,0,0.60);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────────── */
@@ -70,7 +71,6 @@ html, body, #root {
   padding: 0;
 }
 
-/* iOS safe-area inset for bottom sheets */
 .pb-safe {
   padding-bottom: max(2rem, env(safe-area-inset-bottom));
 }
@@ -81,29 +81,32 @@ body {
   color: var(--text-1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.011em;
+  letter-spacing: -0.013em;
   overflow-x: hidden;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.10);
   border-radius: 999px;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.08);
 }
 
-/* ── Card components ────────────────────────────────────────────────────────── */
+/* ── Card components ─────────────────────────────────────────────────────────
+   Flat, border-only surfaces — the Notion way.
+   Hover adds a minimal lift shadow rather than a large shadow bloom.
+────────────────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
-  transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.25s ease, border-color 0.25s ease;
+  transition: box-shadow 0.18s ease, transform 0.18s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .card-hover:hover {
@@ -114,17 +117,20 @@ body {
 .card-2 {
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: background-color 0.25s ease, border-color 0.25s ease;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .card-3 {
   background: var(--surface-3);
-  border-radius: 12px;
-  transition: background-color 0.25s ease;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
-/* ── Buttons ────────────────────────────────────────────────────────────────── */
+/* ── Buttons ─────────────────────────────────────────────────────────────────
+   Apple: confident fill, no glow, subtle press feedback.
+   No box-shadow on primary — the color speaks for itself.
+────────────────────────────────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -133,29 +139,30 @@ body {
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 14px 24px;
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.012em;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(79,70,229,0.28);
-  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: opacity 0.12s ease, transform 0.12s ease;
   text-decoration: none;
 }
 .btn-primary:hover:not(:disabled) {
-  opacity: 0.91;
+  opacity: 0.88;
   transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(79,70,229,0.38);
 }
-.btn-primary:active:not(:disabled) { transform: scale(0.98); opacity: 1; }
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+  opacity: 0.95;
+}
 .btn-primary:disabled {
   background: var(--surface-2);
   color: var(--text-3);
-  box-shadow: none;
   cursor: not-allowed;
   transform: none;
+  opacity: 1;
 }
 
 .btn-secondary {
@@ -166,14 +173,14 @@ body {
   background: var(--surface-2);
   color: var(--text-1);
   border: 1px solid var(--border-2);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 12px 20px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition: background-color 0.12s ease, transform 0.12s ease;
 }
 .btn-secondary:hover { background: var(--surface-3); transform: translateY(-1px); }
 .btn-secondary:active { transform: scale(0.98); }
@@ -186,13 +193,13 @@ body {
   background: transparent;
   color: var(--text-2);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px 16px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 .btn-ghost:hover {
   background: var(--surface-2);
@@ -202,9 +209,9 @@ body {
 /* ── Inputs ─────────────────────────────────────────────────────────────────── */
 .ns-input {
   width: 100%;
-  background: var(--surface-2);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
   padding: 13px 16px;
   font-family: inherit;
   font-size: 15px;
@@ -212,26 +219,27 @@ body {
   color: var(--text-1);
   letter-spacing: -0.01em;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.25s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
   -webkit-appearance: none;
 }
 .ns-input::placeholder { color: var(--text-3); }
 .ns-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-s);
-  background: var(--surface);
 }
 
-/* ── Labels / section headers ───────────────────────────────────────────────── */
+/* ── Labels / section headers ────────────────────────────────────────────────
+   Notion-style: small caps, tight tracking, pure gray — never colored.
+────────────────────────────────────────────────────────────────────────────── */
 .ns-label {
   display: block;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   margin-bottom: 8px;
-  transition: color 0.25s ease;
+  transition: color 0.2s ease;
 }
 
 .section-header {
@@ -240,30 +248,30 @@ body {
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  transition: color 0.25s ease;
+  transition: color 0.2s ease;
 }
 
-/* ── Theme toggle button ────────────────────────────────────────────────────── */
+/* ── Theme toggle ────────────────────────────────────────────────────────────── */
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  color: var(--text-2);
+  color: var(--text-3);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 .theme-toggle:hover {
   background: var(--surface-3);
   color: var(--text-1);
-  transform: scale(1.05);
+  border-color: var(--border-2);
 }
 
-/* ── Progress bar ───────────────────────────────────────────────────────────── */
+/* ── Progress bar ────────────────────────────────────────────────────────────── */
 .progress-track {
   background: var(--surface-3);
   border-radius: 999px;
@@ -273,5 +281,5 @@ body {
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }

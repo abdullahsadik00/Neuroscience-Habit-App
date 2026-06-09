@@ -196,7 +196,7 @@ export default function RoutineBlueprint() {
             <button
               onClick={handleConfirm}
               disabled={confirming || habits.length === 0}
-              className="btn-primary w-full h-14 rounded-[16px] text-[15px] disabled:opacity-60"
+              className="btn-primary w-full h-[52px] text-[15px] disabled:opacity-60"
             >
               {confirming ? 'Starting your routine…' : `Start my routine (${habits.length} habit${habits.length !== 1 ? 's' : ''})`}
               {!confirming && <ChevronRight className="w-4 h-4" />}

@@ -179,7 +179,7 @@ export default function BrainAssessment() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="btn-primary w-full h-14 rounded-[16px]"
+              className="btn-primary w-full h-14 rounded-[10px]"
             >
               Apply to my system →
             </motion.button>

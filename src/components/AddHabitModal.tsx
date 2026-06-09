@@ -68,12 +68,12 @@ export default function AddHabitModal({ onAddStack, onAddSwap, onClose }: Props)
 
         <div className="p-5">
           {/* Mode tabs */}
-          <div className="card-2 flex gap-1 mb-6 p-1 rounded-2xl">
+          <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] flex gap-1 mb-6 p-1 rounded-[10px]">
             <button
               onClick={() => setMode('stack')}
-              className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
+              className={`flex-1 py-2 rounded-[8px] text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
                 mode === 'stack'
-                  ? 'bg-[color:var(--accent)] text-white shadow-sm'
+                  ? 'bg-[color:var(--surface)] text-[color:var(--text-1)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
                   : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)]'
               }`}
             >
@@ -82,9 +82,9 @@ export default function AddHabitModal({ onAddStack, onAddSwap, onClose }: Props)
             </button>
             <button
               onClick={() => setMode('swap')}
-              className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
+              className={`flex-1 py-2 rounded-[8px] text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
                 mode === 'swap'
-                  ? 'bg-rose-500 text-white shadow-sm'
+                  ? 'bg-[color:var(--surface)] text-rose-600 dark:text-rose-400 shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
                   : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)]'
               }`}
             >

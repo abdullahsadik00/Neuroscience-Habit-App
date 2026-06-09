@@ -236,18 +236,18 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Resilience Score */}
-            <div className="card px-3 py-2.5 text-center min-w-[58px]">
-              <div className={`text-[18px] font-bold tracking-tight leading-none ${resilienceScoreColor}`}>
+            <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] rounded-[10px] px-3 py-2 text-center min-w-[56px]">
+              <div className={`text-[17px] font-bold tracking-tight leading-none tabular-nums ${resilienceScoreColor}`}>
                 {resilienceScore}
               </div>
               <div className="text-[9px] font-semibold uppercase tracking-wider text-[color:var(--text-3)] mt-0.5">Resilience</div>
             </div>
 
             {/* DP Points */}
-            <div className="card px-3 py-2.5 text-center min-w-[58px]">
+            <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] rounded-[10px] px-3 py-2 text-center min-w-[56px]">
               <div className="flex items-center gap-0.5 justify-center">
                 <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
-                <span className="text-[18px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400">
+                <span className="text-[17px] font-bold tracking-tight leading-none tabular-nums text-indigo-600 dark:text-indigo-400">
                   {dopaminePoints}
                 </span>
               </div>
@@ -305,24 +305,24 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* ── TABS ── */}
-        <div className="card p-1 flex gap-1">
+        {/* ── TABS — Apple segmented control ── */}
+        <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] p-1 flex gap-1 rounded-[12px]">
           {TABS.map(({ key, label, icon: Icon }) => {
             const count = key === 'habits' ? activeStacks.length : key === 'swaps' ? activeSwaps.length : null;
             return (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-semibold transition-all min-w-0 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-[13px] font-semibold transition-all min-w-0 ${
                   activeTab === key
-                    ? 'bg-[color:var(--accent)] text-white shadow-sm'
-                    : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
+                    ? 'bg-[color:var(--surface)] text-[color:var(--text-1)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+                    : 'text-[color:var(--text-3)] hover:text-[color:var(--text-2)]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{label}</span>
                 {count !== null && (
-                  <span className="hidden sm:inline text-[11px] opacity-70">({count})</span>
+                  <span className="hidden sm:inline text-[11px] opacity-60 ml-0.5">({count})</span>
                 )}
               </button>
             );

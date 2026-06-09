@@ -155,7 +155,7 @@ export default function Onboarding() {
                   ))}
                 </div>
 
-                <button onClick={() => navigate(1)} className="btn-primary w-full h-14 text-[15px] rounded-[16px]">
+                <button onClick={() => navigate(1)} className="btn-primary w-full h-14 text-[15px] rounded-[10px]">
                   Get started
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -194,7 +194,7 @@ export default function Onboarding() {
                         <button
                           key={r}
                           onClick={() => setRole(r)}
-                          className={`py-2.5 rounded-xl text-[13px] font-semibold border transition-all ${
+                          className={`py-2.5 rounded-[9px] text-[13px] font-semibold border transition-all ${
                             role === r
                               ? 'bg-indigo-50 dark:bg-indigo-500/15 border-indigo-300 dark:border-indigo-500/50 text-indigo-600 dark:text-indigo-400'
                               : 'bg-[color:var(--surface-2)] border-[color:var(--border)] text-[color:var(--text-2)] hover:border-[color:var(--border-2)] hover:text-[color:var(--text-1)]'
@@ -211,7 +211,7 @@ export default function Onboarding() {
                   <button
                     onClick={() => navigate(2)}
                     disabled={!canProceed}
-                    className="btn-primary w-full h-14 rounded-[16px]"
+                    className="btn-primary w-full h-14 rounded-[10px]"
                   >
                     Continue
                     <ChevronRight className="w-4 h-4" />
@@ -275,7 +275,7 @@ export default function Onboarding() {
                   <button
                     onClick={() => navigate(3)}
                     disabled={!selectedHabit}
-                    className="btn-primary w-full h-14 rounded-[16px]"
+                    className="btn-primary w-full h-14 rounded-[10px]"
                   >
                     Add this habit
                     <ChevronRight className="w-4 h-4" />
@@ -330,7 +330,7 @@ export default function Onboarding() {
                   </p>
                 </div>
 
-                <button onClick={handleFinish} className="btn-primary w-full h-14 rounded-[16px]">
+                <button onClick={handleFinish} className="btn-primary w-full h-14 rounded-[10px]">
                   I'm ready
                   <ArrowRight className="w-4 h-4" />
                 </button>
