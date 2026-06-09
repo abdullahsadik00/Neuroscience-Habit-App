@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Brain, ArrowRight, Check, RefreshCw, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
+import NeuroLogo from '../components/NeuroLogo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeuroStore } from '../store/useNeuroStore';
 import { useTheme } from '../contexts/ThemeContext';
@@ -124,10 +125,10 @@ export default function Onboarding() {
               <div className="flex-1 flex flex-col justify-center">
                 <div className="mb-10">
                   <div className="flex items-center gap-2.5 mb-10">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="w-9 h-9 rounded-[10px] bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+                      <NeuroLogo size={18} className="text-white" />
                     </div>
-                    <span className="text-[13px] font-semibold text-[color:var(--text-3)] tracking-wide">NeuroSync</span>
+                    <span className="text-[14px] font-bold text-[color:var(--text-1)] tracking-tight">NeuroSync</span>
                   </div>
 
                   <h1 className="text-[42px] font-bold text-[color:var(--text-1)] tracking-tight leading-[1.1] mb-5">

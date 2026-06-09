@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Shield, Plus, Zap, BookOpen, Sun, Moon, ChevronDown } from 'lucide-react';
+import NeuroLogo from '../components/NeuroLogo';
 import { useNeuroStore } from '../store/useNeuroStore';
 import { useTheme } from '../contexts/ThemeContext';
 import ComebackProtocol from '../components/ComebackProtocol';
@@ -227,7 +228,12 @@ export default function Dashboard() {
         {/* ── HEADER ── */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="section-header mb-1">NeuroSync</p>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-[8px] bg-blue-600 dark:bg-blue-500 flex items-center justify-center shrink-0">
+                <NeuroLogo size={14} className="text-white" />
+              </div>
+              <span className="text-[13px] font-bold text-[color:var(--text-1)] tracking-tight">NeuroSync</span>
+            </div>
             <h1 className="text-[22px] sm:text-[26px] font-bold text-[color:var(--text-1)] tracking-tight leading-none truncate">
               Hey, {userProfile.name}
             </h1>
