@@ -69,7 +69,7 @@ export default function RecoveryHeatmap({ weeks }: Props) {
             return (
               <div
                 key={wi}
-                className={`w-[10px] h-[10px] rounded-[2px] shrink-0 cursor-default transition-opacity hover:opacity-80 ${color} ${day.isToday ? 'ring-1 ring-indigo-500 dark:ring-indigo-400' : ''}`}
+                className={`w-[10px] h-[10px] rounded-[2px] shrink-0 cursor-default transition-opacity hover:opacity-80 ${color} ${day.isToday ? 'ring-1 ring-blue-500 dark:ring-blue-400' : ''}`}
                 title={title}
                 onMouseEnter={() => setTooltip(title)}
                 onMouseLeave={() => setTooltip(null)}

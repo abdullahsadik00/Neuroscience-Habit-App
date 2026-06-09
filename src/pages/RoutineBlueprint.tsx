@@ -8,7 +8,7 @@ import { getArchetypeName } from '../utils/brainHelpers';
 import type { HabitTemplate } from '../data/habitLibrary';
 
 const CAT_BADGE: Record<string, string> = {
-  focus:    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
+  focus:    'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
   wellness: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
   mindset:  'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   fitness:  'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
@@ -85,7 +85,7 @@ export default function RoutineBlueprint() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115]">
+    <div className="min-h-screen bg-[color:var(--bg)]">
       {/* Theme toggle */}
       <button onClick={toggleTheme} className="theme-toggle fixed top-5 right-5 z-50">
         {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -163,7 +163,7 @@ export default function RoutineBlueprint() {
                     <span className="text-[11px] text-[color:var(--text-3)]">{ENERGY_LABEL[habit.energyRequired]}</span>
                     <button
                       onClick={() => openSwap(habit.id)}
-                      className="flex items-center gap-1 text-[12px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                      className="flex items-center gap-1 text-[12px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     >
                       <RefreshCw className="w-3 h-3" />
                       Swap

@@ -51,7 +51,7 @@ export default function ComebackGateModal({ onUpgrade, onDismiss }: Props) {
 
         {/* Value prop */}
         <div className="flex items-center gap-2 card-2 px-3 py-2 rounded-xl mb-5">
-          <Zap className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
+          <Zap className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
           <p className="text-[12px] text-[color:var(--text-2)]">
             Pro unlocks unlimited comebacks, multi-device sync, and Failure Signature analysis.
           </p>

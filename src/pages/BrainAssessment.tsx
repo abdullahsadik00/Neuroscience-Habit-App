@@ -115,7 +115,7 @@ export default function BrainAssessment() {
     const insights = getProfileInsights(profile);
 
     return (
-      <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] px-6 py-12">
+      <div className="min-h-screen bg-[color:var(--bg)] px-6 py-12">
         <div className="max-w-md mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -130,7 +130,7 @@ export default function BrainAssessment() {
                 {archetype}
               </h1>
               <p className="text-[13px] text-[color:var(--text-2)] mt-2">
-                Based on your 4 responses — this shapes everything in the app.
+                Based on your 5 responses — this shapes everything in the app.
               </p>
             </div>
 
@@ -144,7 +144,7 @@ export default function BrainAssessment() {
                   transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
                   className="card-2 px-4 py-4 rounded-xl flex gap-3 items-start"
                 >
-                  <span className="text-indigo-500 dark:text-indigo-400 text-sm mt-0.5 shrink-0">✦</span>
+                  <span className="text-blue-500 dark:text-blue-400 text-sm mt-0.5 shrink-0">✦</span>
                   <p className="text-[13px] text-[color:var(--text-1)] leading-relaxed">{insight}</p>
                 </motion.div>
               ))}
@@ -195,7 +195,7 @@ export default function BrainAssessment() {
 
   // ── Questions ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] flex flex-col">
+    <div className="min-h-screen bg-[color:var(--bg)] flex flex-col">
       {/* Theme toggle */}
       <button onClick={toggleTheme} className="theme-toggle fixed top-5 right-5 z-50">
         {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -225,7 +225,7 @@ export default function BrainAssessment() {
         </div>
         <div className="h-[3px] progress-track">
           <motion.div
-            className="progress-fill bg-indigo-500 dark:bg-indigo-400"
+            className="progress-fill bg-blue-500 dark:bg-blue-400"
             initial={false}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -260,17 +260,17 @@ export default function BrainAssessment() {
                     disabled={!!selected}
                     className={`w-full text-left card p-4 transition-all ${
                       isSelected
-                        ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                        ? 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:!bg-blue-500/10'
                         : 'card-hover'
                     }`}
                   >
                     <p className={`text-[14px] font-semibold leading-snug mb-0.5 ${
-                      isSelected ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+                      isSelected ? 'text-blue-600 dark:text-blue-300' : 'text-[color:var(--text-1)]'
                     }`}>
                       {ans.label}
                     </p>
                     <p className={`text-[12px] leading-relaxed ${
-                      isSelected ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+                      isSelected ? 'text-blue-500/70 dark:text-blue-400/70' : 'text-[color:var(--text-3)]'
                     }`}>
                       {ans.sub}
                     </p>

@@ -30,8 +30,8 @@ const TYPE_META: Record<RecalibrationSuggestion['type'], {
   UPDATE_MICRO: {
     label: 'Update re-entry actions',
     icon: <Zap className="w-3.5 h-3.5" />,
-    color: 'text-indigo-600 dark:text-indigo-400',
-    bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+    color: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 dark:bg-blue-500/10',
   },
 };
 

@@ -19,8 +19,8 @@
   --text-3:     #ADADAD;
   --border:     rgba(0, 0, 0, 0.08);
   --border-2:   rgba(0, 0, 0, 0.12);
-  --accent:     #4F46E5;
-  --accent-s:   rgba(79, 70, 229, 0.08);
+  --accent:     #2563EB;
+  --accent-s:   rgba(37, 99, 235, 0.08);
   --success:    #16A34A;
   --success-s:  rgba(22, 163, 74, 0.08);
   --warning:    #D97706;
@@ -45,8 +45,8 @@
   --text-3:     #555555;
   --border:     rgba(255, 255, 255, 0.07);
   --border-2:   rgba(255, 255, 255, 0.11);
-  --accent:     #818CF8;
-  --accent-s:   rgba(129, 140, 248, 0.10);
+  --accent:     #60A5FA;
+  --accent-s:   rgba(96, 165, 250, 0.10);
   --success:    #22C55E;
   --success-s:  rgba(34, 197, 94, 0.10);
   --warning:    #FBBF24;

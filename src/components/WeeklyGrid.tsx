@@ -23,7 +23,7 @@ export default function WeeklyGrid({ days }: { days: WeekDay[] }) {
                     : day.missed
                     ? 'bg-[color:var(--surface-2)] border border-[color:var(--border)]'
                     : 'bg-[color:var(--surface-2)] border border-[color:var(--border)]'
-                } ${day.isToday ? 'ring-2 ring-indigo-300/60 dark:ring-indigo-400/40' : ''}
+                } ${day.isToday ? 'ring-2 ring-blue-300/60 dark:ring-blue-400/40' : ''}
                   ${isRecoveryComeback ? 'ring-2 ring-amber-400/70 dark:ring-amber-400/60' : ''}`}
               />
               {isRecoveryComeback && (

@@ -76,7 +76,7 @@ function ArchivedSection({
                   </div>
                   <button
                     onClick={() => onRestore(stack.id)}
-                    className="shrink-0 text-[12px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
+                    className="shrink-0 text-[12px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10"
                   >
                     Restore
                   </button>
@@ -150,7 +150,7 @@ export default function Dashboard() {
     : 'text-rose-600 dark:text-rose-400';
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115]">
+    <div className="min-h-screen bg-[color:var(--bg)]">
       {/* Weekly Check-in */}
       <AnimatePresence>
         {showCheckin && (
@@ -246,8 +246,8 @@ export default function Dashboard() {
             {/* DP Points */}
             <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] rounded-[10px] px-3 py-2 text-center min-w-[56px]">
               <div className="flex items-center gap-0.5 justify-center">
-                <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
-                <span className="text-[17px] font-bold tracking-tight leading-none tabular-nums text-indigo-600 dark:text-indigo-400">
+                <Zap className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                <span className="text-[17px] font-bold tracking-tight leading-none tabular-nums text-blue-600 dark:text-blue-400">
                   {dopaminePoints}
                 </span>
               </div>
@@ -344,7 +344,7 @@ export default function Dashboard() {
                   <SectionHeader label="Neuro-Stacks" inline />
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[color:var(--accent-s)] hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[12px] font-semibold transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[color:var(--accent-s)] hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[12px] font-semibold transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add habit
@@ -446,7 +446,7 @@ export default function Dashboard() {
                             </div>
                           </div>
                           {log.dopamineChange !== 0 && (
-                            <span className={`text-[11px] font-semibold shrink-0 ${log.dopamineChange > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                            <span className={`text-[11px] font-semibold shrink-0 ${log.dopamineChange > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400'}`}>
                               {log.dopamineChange > 0 ? '+' : ''}{log.dopamineChange}
                             </span>
                           )}

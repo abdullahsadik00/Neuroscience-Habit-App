@@ -8,7 +8,7 @@ import { getDaysMissed } from '../utils/comebackHelpers';
 import WeeklyGrid from './WeeklyGrid';
 
 const CAT_BADGE: Record<string, string> = {
-  focus:    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
+  focus:    'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
   wellness: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
   mindset:  'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   fitness:  'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
@@ -112,11 +112,11 @@ export default function HabitCard({ stack, comebacks, onComplete, onArchive }: P
             </div>
           )}
           {stack.anchorCue && stack.action && (
-            <ArrowDown className="w-3 h-3 text-indigo-400 dark:text-indigo-500 mx-auto" />
+            <ArrowDown className="w-3 h-3 text-blue-400 dark:text-blue-500 mx-auto" />
           )}
           {stack.action && (
             <div>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">I will</span>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-blue-500 dark:text-blue-400">I will</span>
               <p className="text-[12px] font-medium text-[color:var(--text-1)] leading-snug line-clamp-2 mt-0.5">{stack.action}</p>
             </div>
           )}
@@ -146,7 +146,7 @@ export default function HabitCard({ stack, comebacks, onComplete, onArchive }: P
         </div>
         <div className="h-[4px] progress-track mb-2">
           <motion.div
-            className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
+            className="h-full rounded-full bg-blue-500 dark:bg-blue-400"
             initial={false}
             animate={{ width: `${stack.myelinationLevel}%` }}
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
@@ -168,7 +168,7 @@ export default function HabitCard({ stack, comebacks, onComplete, onArchive }: P
                 >
                   <X className="w-3 h-3 text-[color:var(--text-3)]" />
                 </button>
-                <p className="text-[11px] font-semibold text-indigo-500 dark:text-indigo-400 mb-1">What is myelination?</p>
+                <p className="text-[11px] font-semibold text-blue-500 dark:text-blue-400 mb-1">What is myelination?</p>
                 <p className="text-[11px] text-[color:var(--text-2)] leading-relaxed pr-4">
                   Myelin is a fatty sheath that wraps nerve fibers, speeding signal conduction — the more you repeat a behavior, the faster and more automatic it feels. This bar maps to research by Lally et al. (2010): habit automaticity takes 18–254 days on average, reaching full strength at around 57–66 completions.
                 </p>

@@ -14,7 +14,7 @@ interface Props {
 }
 
 const STYLE_BADGE: Record<string, string> = {
-  perfectionist: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
+  perfectionist: 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
   avoider:       'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
   analyst:       'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   drifter:       'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',

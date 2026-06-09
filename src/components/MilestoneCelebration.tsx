@@ -51,7 +51,7 @@ export default function MilestoneCelebration({ event, onDismiss }: Props) {
         <div className="card shadow-[var(--shadow-modal)] p-5 rounded-2xl overflow-hidden relative">
           {/* Glow pulse */}
           <motion.div
-            className="absolute inset-0 bg-indigo-400/10 dark:bg-indigo-400/8 rounded-2xl"
+            className="absolute inset-0 bg-blue-400/10 dark:bg-blue-400/8 rounded-2xl"
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -66,11 +66,11 @@ export default function MilestoneCelebration({ event, onDismiss }: Props) {
                 >
                   ⚡
                 </motion.div>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400">
                   Myelination milestone
                 </span>
               </div>
-              <span className="text-[22px] font-bold text-indigo-600 dark:text-indigo-400 leading-none">
+              <span className="text-[22px] font-bold text-blue-600 dark:text-blue-400 leading-none">
                 {event.milestone}%
               </span>
             </div>
@@ -88,7 +88,7 @@ export default function MilestoneCelebration({ event, onDismiss }: Props) {
             {/* Progress bar animating to milestone */}
             <div className="h-[3px] progress-track mt-4">
               <motion.div
-                className="h-full rounded-full bg-indigo-500"
+                className="h-full rounded-full bg-blue-500"
                 initial={{ width: `${Math.max(0, event.milestone - 15)}%` }}
                 animate={{ width: `${event.milestone}%` }}
                 transition={{ duration: 1, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}

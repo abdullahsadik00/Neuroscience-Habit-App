@@ -11,7 +11,7 @@ interface Props {
 }
 
 const STATS = (p: Props) => [
-  { label: 'Resilience',      value: p.resilienceScore,      sub: 'adaptability score', icon: Shield,      color: 'text-indigo-600 dark:text-indigo-400' },
+  { label: 'Resilience',      value: p.resilienceScore,      sub: 'adaptability score', icon: Shield,      color: 'text-blue-600 dark:text-blue-400' },
   { label: 'Recovery Rate',   value: `${p.recoveryRate}%`,   sub: 'comebacks done',     icon: TrendingUp,  color: 'text-emerald-600 dark:text-emerald-400' },
   { label: 'Comeback Streak', value: `${p.comebackStreak}d`, sub: 'consecutive',        icon: RotateCcw,   color: 'text-amber-600 dark:text-amber-400' },
   { label: 'Comebacks',       value: p.totalComebacks,       sub: 'total',              icon: RefreshCw,   color: 'text-sky-600 dark:text-sky-400' },

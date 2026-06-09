@@ -99,7 +99,7 @@ export default function WeeklyCheckin({ onSubmit, onDismiss }: Props) {
         {/* Progress bar */}
         <div className="mx-6 mb-5 h-[3px] progress-track">
           <motion.div
-            className="progress-fill bg-indigo-500 dark:bg-indigo-400"
+            className="progress-fill bg-blue-500 dark:bg-blue-400"
             initial={false}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -190,7 +190,7 @@ function StepConsistency({ value, onSelect }: { value: number; onSelect: (v: num
             onMouseLeave={() => setHovered(0)}
             className={`w-12 h-12 rounded-2xl text-[18px] font-bold transition-all ${
               n <= display
-                ? 'bg-indigo-500 dark:bg-indigo-500 text-white scale-105 shadow-sm'
+                ? 'bg-blue-500 dark:bg-blue-500 text-white scale-105 shadow-sm'
                 : 'card-2 text-[color:var(--text-3)] hover:scale-105'
             }`}
           >
@@ -198,7 +198,7 @@ function StepConsistency({ value, onSelect }: { value: number; onSelect: (v: num
           </button>
         ))}
       </div>
-      <p className={`text-center text-[13px] font-medium transition-colors ${display ? 'text-indigo-600 dark:text-indigo-400' : 'text-[color:var(--text-3)]'}`}>
+      <p className={`text-center text-[13px] font-medium transition-colors ${display ? 'text-blue-600 dark:text-blue-400' : 'text-[color:var(--text-3)]'}`}>
         {display ? CONSISTENCY_LABELS[display] : 'Tap a number'}
       </p>
     </div>
@@ -222,17 +222,17 @@ function StepBlocker({ value, onSelect }: { value: string; onSelect: (v: string)
             onClick={() => onSelect(opt.value)}
             className={`w-full text-left card p-4 transition-all ${
               value === opt.value
-                ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                ? 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:!bg-blue-500/10'
                 : 'card-hover'
             }`}
           >
             <p className={`text-[14px] font-semibold leading-snug mb-0.5 ${
-              value === opt.value ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+              value === opt.value ? 'text-blue-600 dark:text-blue-300' : 'text-[color:var(--text-1)]'
             }`}>
               {opt.label}
             </p>
             <p className={`text-[12px] ${
-              value === opt.value ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+              value === opt.value ? 'text-blue-500/70 dark:text-blue-400/70' : 'text-[color:var(--text-3)]'
             }`}>
               {opt.sub}
             </p>
@@ -260,19 +260,19 @@ function StepEnergy({ value, onSelect }: { value: string; onSelect: (v: string) 
             onClick={() => onSelect(opt.value)}
             className={`w-full text-left card p-4 flex items-center gap-4 transition-all ${
               value === opt.value
-                ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                ? 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:!bg-blue-500/10'
                 : 'card-hover'
             }`}
           >
             <span className="text-2xl">{opt.emoji}</span>
             <div>
               <p className={`text-[14px] font-semibold ${
-                value === opt.value ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+                value === opt.value ? 'text-blue-600 dark:text-blue-300' : 'text-[color:var(--text-1)]'
               }`}>
                 {opt.label}
               </p>
               <p className={`text-[12px] ${
-                value === opt.value ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+                value === opt.value ? 'text-blue-500/70 dark:text-blue-400/70' : 'text-[color:var(--text-3)]'
               }`}>
                 {opt.desc}
               </p>
@@ -312,7 +312,7 @@ function StepContext({
             onClick={() => setLocalChanged(val)}
             className={`flex-1 py-3 rounded-xl text-[14px] font-semibold transition-all ${
               localChanged === val
-                ? 'bg-indigo-500 dark:bg-indigo-500 text-white shadow-sm'
+                ? 'bg-blue-500 dark:bg-blue-500 text-white shadow-sm'
                 : 'card-2 text-[color:var(--text-2)] hover:text-[color:var(--text-1)]'
             }`}
           >
@@ -404,17 +404,17 @@ function StepFailureMode({
             onClick={() => setSelected(opt.value)}
             className={`w-full text-left card p-4 transition-all ${
               selected === opt.value
-                ? 'ring-2 ring-indigo-500 dark:ring-indigo-400 bg-indigo-50 dark:!bg-indigo-500/10'
+                ? 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:!bg-blue-500/10'
                 : 'card-hover'
             }`}
           >
             <p className={`text-[14px] font-semibold leading-snug mb-0.5 ${
-              selected === opt.value ? 'text-indigo-600 dark:text-indigo-300' : 'text-[color:var(--text-1)]'
+              selected === opt.value ? 'text-blue-600 dark:text-blue-300' : 'text-[color:var(--text-1)]'
             }`}>
               {opt.label}
             </p>
             <p className={`text-[12px] ${
-              selected === opt.value ? 'text-indigo-500/70 dark:text-indigo-400/70' : 'text-[color:var(--text-3)]'
+              selected === opt.value ? 'text-blue-500/70 dark:text-blue-400/70' : 'text-[color:var(--text-3)]'
             }`}>
               {opt.sub}
             </p>

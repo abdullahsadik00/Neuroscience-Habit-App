@@ -15,7 +15,7 @@ interface Props {
 }
 
 const CATEGORY_META = [
-  { key: 'focus',    label: 'Focus',    icon: Brain,    badge: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400', active: 'ring-2 ring-indigo-400' },
+  { key: 'focus',    label: 'Focus',    icon: Brain,    badge: 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400', active: 'ring-2 ring-blue-400' },
   { key: 'wellness', label: 'Wellness', icon: Sparkles, badge: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400', active: 'ring-2 ring-emerald-400' },
   { key: 'mindset',  label: 'Mindset',  icon: Zap,      badge: 'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400', active: 'ring-2 ring-sky-400' },
   { key: 'fitness',  label: 'Fitness',  icon: Dumbbell, badge: 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400', active: 'ring-2 ring-amber-400' },
@@ -131,8 +131,8 @@ export default function AddHabitModal({ onAddStack, onAddSwap, onClose }: Props)
 
               {/* Live implementation intention preview */}
               {stackDraft.anchorCue.trim() && stackDraft.action.trim() && (
-                <div className="card-2 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-2">
+                <div className="card-2 p-4 rounded-xl border border-blue-100 dark:border-blue-500/20">
+                  <p className="text-[9px] font-semibold uppercase tracking-wider text-blue-500 dark:text-blue-400 mb-2">
                     Your implementation intention
                   </p>
                   <p className="text-[13px] text-[color:var(--text-1)] leading-relaxed">

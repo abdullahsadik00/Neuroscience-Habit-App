@@ -37,7 +37,7 @@ const SUGGESTIONS: Record<Role, HabitSuggestion[]> = {
 };
 
 const CAT_BADGE: Record<string, string> = {
-  focus:    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
+  focus:    'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
   wellness: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
   mindset:  'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   fitness:  'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
@@ -76,7 +76,7 @@ export default function Onboarding() {
   const canProceed = name.trim().length > 0 && role !== null;
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0F1115] transition-colors duration-300">
+    <div className="min-h-screen bg-[color:var(--bg)] transition-colors duration-300">
       {/* Theme toggle */}
       <button onClick={toggleTheme} className="theme-toggle fixed top-5 right-5 z-50">
         {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -98,7 +98,7 @@ export default function Onboarding() {
                 <div
                   key={i}
                   className={`h-[3px] rounded-full transition-all duration-300 ${
-                    i <= step ? 'bg-indigo-500 dark:bg-indigo-400 w-6' : 'bg-[color:var(--surface-3)] w-4'
+                    i <= step ? 'bg-blue-500 dark:bg-blue-400 w-6' : 'bg-[color:var(--surface-3)] w-4'
                   }`}
                 />
               ))}
@@ -124,15 +124,15 @@ export default function Onboarding() {
               <div className="flex-1 flex flex-col justify-center">
                 <div className="mb-10">
                   <div className="flex items-center gap-2.5 mb-10">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 flex items-center justify-center">
+                      <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <span className="text-[13px] font-semibold text-[color:var(--text-3)] tracking-wide">NeuroSync</span>
                   </div>
 
                   <h1 className="text-[42px] font-bold text-[color:var(--text-1)] tracking-tight leading-[1.1] mb-5">
                     Build habits that<br />
-                    <span className="text-indigo-600 dark:text-indigo-400">survive failure.</span>
+                    <span className="text-blue-600 dark:text-blue-400">survive failure.</span>
                   </h1>
 
                   <p className="text-[color:var(--text-2)] text-[16px] leading-relaxed">
@@ -142,7 +142,7 @@ export default function Onboarding() {
 
                 <div className="space-y-2.5 mb-10">
                   {[
-                    { icon: Brain,     color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/12', text: 'Track habits with myelination science' },
+                    { icon: Brain,     color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/12', text: 'Track habits with myelination science' },
                     { icon: RefreshCw, color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-500/12',   text: 'Activate the Comeback Protocol on failure' },
                     { icon: Zap,       color: 'text-sky-500 dark:text-sky-400',       bg: 'bg-sky-50 dark:bg-sky-500/12',       text: 'Build your personal recovery playbook' },
                   ].map(({ icon: Icon, color, bg, text }) => (
@@ -196,7 +196,7 @@ export default function Onboarding() {
                           onClick={() => setRole(r)}
                           className={`py-2.5 rounded-[9px] text-[13px] font-semibold border transition-all ${
                             role === r
-                              ? 'bg-indigo-50 dark:bg-indigo-500/15 border-indigo-300 dark:border-indigo-500/50 text-indigo-600 dark:text-indigo-400'
+                              ? 'bg-blue-50 dark:bg-blue-500/15 border-blue-300 dark:border-blue-500/50 text-blue-600 dark:text-blue-400'
                               : 'bg-[color:var(--surface-2)] border-[color:var(--border)] text-[color:var(--text-2)] hover:border-[color:var(--border-2)] hover:text-[color:var(--text-1)]'
                           }`}
                         >
@@ -241,7 +241,7 @@ export default function Onboarding() {
                         key={habit.title}
                         onClick={() => setSelectedHabit(isSelected ? null : habit)}
                         className={`w-full text-left card p-5 transition-all ${
-                          isSelected ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : 'card-hover'
+                          isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400' : 'card-hover'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -260,7 +260,7 @@ export default function Onboarding() {
                           </div>
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
                             isSelected
-                              ? 'bg-indigo-500 dark:bg-indigo-400 border-indigo-500 dark:border-indigo-400'
+                              ? 'bg-blue-500 dark:bg-blue-400 border-blue-500 dark:border-blue-400'
                               : 'border-[color:var(--surface-3)]'
                           }`}>
                             {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -309,7 +309,7 @@ export default function Onboarding() {
                 <div className="space-y-3 mb-7">
                   {[
                     { num: '01', accent: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/12', title: 'You miss a habit', body: 'The protocol activates automatically. No guilt prompt, no streak broken notification.' },
-                    { num: '02', accent: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/12', title: 'You get a reset plan', body: '1–3 micro-actions tailored to your energy. Doable in under 2 minutes.' },
+                    { num: '02', accent: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/12', title: 'You get a reset plan', body: '1–3 micro-actions tailored to your energy. Doable in under 2 minutes.' },
                     { num: '03', accent: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/12', title: 'Your playbook grows', body: 'Every comeback is logged. Over time, patterns emerge. You learn how you recover.' },
                   ].map(({ num, accent, title, body }) => (
                     <div key={num} className="flex gap-4 card-2 p-4 rounded-xl">
