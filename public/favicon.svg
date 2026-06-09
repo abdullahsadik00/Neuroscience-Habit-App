@@ -1,30 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <defs>
-    <style>
-      @media (prefers-color-scheme: dark) {
-        .bg { fill: #1d4ed8; }
-      }
-    </style>
-    <linearGradient id="bg-grad" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#3b82f6"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
   </defs>
 
-  <!-- App icon background — rounded square -->
-  <rect class="bg" width="100" height="100" rx="22" fill="url(#bg-grad)"/>
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
 
-  <!-- Neural "N" mark: 4 nodes + 3 connections -->
-  <!-- Left vertical -->
-  <line x1="27" y1="25" x2="27" y2="75" stroke="white" stroke-width="6.5" stroke-linecap="round" stroke-opacity="0.95"/>
-  <!-- Diagonal (the neural comeback path) -->
-  <line x1="27" y1="25" x2="73" y2="75" stroke="white" stroke-width="6.5" stroke-linecap="round" stroke-opacity="0.80"/>
-  <!-- Right vertical -->
-  <line x1="73" y1="25" x2="73" y2="75" stroke="white" stroke-width="6.5" stroke-linecap="round" stroke-opacity="0.95"/>
+  <!-- Left hemisphere outline -->
+  <path
+    d="M 50 22
+       C 46 14, 29 11, 21 22
+       C 13 32, 14 44, 13 55
+       C 12 67, 19 78, 32 80
+       C 40 81, 47 77, 50 72"
+    fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
+  />
 
-  <!-- Node dots at each vertex -->
-  <circle cx="27" cy="25" r="6" fill="white"/>
-  <circle cx="27" cy="75" r="6" fill="white"/>
-  <circle cx="73" cy="25" r="6" fill="white"/>
-  <circle cx="73" cy="75" r="6" fill="white"/>
+  <!-- Right hemisphere outline -->
+  <path
+    d="M 50 22
+       C 54 14, 71 11, 79 22
+       C 87 32, 86 44, 87 55
+       C 88 67, 81 78, 68 80
+       C 60 81, 53 77, 50 72"
+    fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
+  />
+
+  <!-- Bottom connecting arc (cerebellum base) -->
+  <path
+    d="M 32 80 C 38 87, 62 87, 68 80"
+    fill="none" stroke="white" stroke-width="5" stroke-linecap="round"
+  />
+
+  <!-- Longitudinal fissure (center crease) -->
+  <line
+    x1="50" y1="22" x2="50" y2="72"
+    stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.45"
+  />
+
+  <!-- Left gyrus fold -->
+  <path
+    d="M 24 37 Q 37 50 24 63"
+    fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"
+  />
+
+  <!-- Right gyrus fold -->
+  <path
+    d="M 76 37 Q 63 50 76 63"
+    fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.65"
+  />
 </svg>

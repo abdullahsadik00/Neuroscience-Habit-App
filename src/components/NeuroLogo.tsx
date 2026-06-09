@@ -14,13 +14,22 @@ export default function NeuroLogo({ size = 20, className = '' }: Props) {
       className={className}
       aria-label="NeuroSync"
     >
-      <line x1="27" y1="25" x2="27" y2="75" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeOpacity="0.95"/>
-      <line x1="27" y1="25" x2="73" y2="75" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeOpacity="0.75"/>
-      <line x1="73" y1="25" x2="73" y2="75" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeOpacity="0.95"/>
-      <circle cx="27" cy="25" r="7" fill="currentColor"/>
-      <circle cx="27" cy="75" r="7" fill="currentColor"/>
-      <circle cx="73" cy="25" r="7" fill="currentColor"/>
-      <circle cx="73" cy="75" r="7" fill="currentColor"/>
+      {/*
+        Brain silhouette — filled, two-lobe top with 18-unit center dip so both
+        hemispheres read clearly even at 14px. No internal lines needed.
+      */}
+      <path
+        d="M 50 26
+           C 46 12, 26 8, 17 22
+           C 8 34, 10 46, 9 57
+           C 8 68, 17 80, 31 82
+           C 39 83, 47 79, 50 75
+           C 53 79, 61 83, 69 82
+           C 83 80, 92 68, 91 57
+           C 90 46, 92 34, 83 22
+           C 74 8, 54 12, 50 26 Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
