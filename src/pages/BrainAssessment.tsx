@@ -11,9 +11,6 @@ type QuestionKey = keyof Omit<NeuroBrainProfile, 'completedAt'>;
 interface Answer { label: string; sub: string; value: string; }
 interface Question { key: QuestionKey; text: string; icon: string; answers: Answer[]; }
 
-// 4 core questions — the minimum set needed to drive Comeback Protocol personalisation.
-// The 4 deferred dimensions (motivationSource, selfTalkPattern, accountabilityStyle, coreDriver)
-// are collected in the first weekly check-in once the user has a habit to reflect on.
 const QUESTIONS: Question[] = [
   { key: 'failureStyle', icon: '🧠', text: 'When you miss something important, what\'s your first instinct?',
     answers: [
@@ -45,6 +42,14 @@ const QUESTIONS: Question[] = [
       { label: 'A few hours', sub: 'I need time to process', value: 'medium' },
       { label: 'A few days', sub: 'I spiral before recovering', value: 'slow' },
       { label: 'It varies', sub: 'Depends completely on the situation', value: 'variable' },
+    ],
+  },
+  { key: 'coreDriver', icon: '🎯', text: 'Why do you actually want to build these habits?',
+    answers: [
+      { label: 'I want to feel better', sub: 'Less stress, more energy, more peace day-to-day', value: 'feel-better' },
+      { label: 'I want to perform better', sub: 'Output, capability, and results are the goal', value: 'perform-better' },
+      { label: 'I want to become someone', sub: 'This is about identity — who I\'m building into', value: 'become-someone' },
+      { label: 'I\'m just trying to survive', sub: 'Hard season — I need the basics to hold', value: 'survive' },
     ],
   },
 ];
@@ -209,6 +214,7 @@ export default function BrainAssessment() {
                 peakEnergyWindow: 'variable',
                 primaryBlocker: 'distraction',
                 recoverySpeed: 'variable',
+                coreDriver: 'feel-better',
               };
               advance(SKIP_DEFAULTS[question.key] ?? 'analyst');
             }}
