@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# NeuroSync
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A habit-recovery app built around what happens **after you miss a habit**. Most trackers reset your streak to zero. NeuroSync starts a *Comeback Protocol* instead: a short reframe plus small, energy-aware actions to get you back on track. Every comeback is logged so you can see your own recovery patterns.
 
-Currently, two official plugins are available:
+The repo contains a **React web app (PWA)**, a **Flutter mobile app**, and a **Supabase Edge Function** that handles Stripe subscription webhooks.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Brain Assessment:** an 8-question onboarding interview that maps you to one of 16 profiles (failure style × core driver). The profile drives which habits are suggested and how the Comeback Protocol responds.
+- **Comeback Protocol:** triggered on a missed habit. Personalised by failure style and peak-energy window. The free tier is gated to 3 uses a month, with an upgrade prompt after that.
+- **Habit cards:** implementation intentions ("when X, then Y"), a 7-day grid, and progress milestones.
+- **Bad-habit swaps:** friction levels, urge surfing and slip logging.
+- **Weekly check-in** feeding a recalibration step that suggests scaling a habit down, replacing it or updating it.
+- **Stats:** recovery rate, comeback streak, activity timeline.
+- Dark/light theme, installable as a PWA, works offline.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Architecture
 
-## Expanding the ESLint configuration
+| Part | Stack | Notes |
+|---|---|---|
+| Web app (`/src`) | React 19, TypeScript, Vite, Tailwind CSS v4, Zustand v5, framer-motion | State persists to `localStorage`, with a schema-version migration guard. PWA via `vite-plugin-pwa`. Product analytics via PostHog |
+| Mobile app (`/flutter_app`) | Flutter, Riverpod | Port of the web feature set, with Supabase auth and cloud sync |
+| Payments (`/supabase/functions/stripe-webhook`) | Supabase Edge Function (Deno), Stripe | Verifies the Stripe signature, then on `checkout.session.completed` / `customer.subscription.deleted` sets or clears the user's Pro flag in Supabase |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Web app
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # Vite dev server
+npm run build    # tsc type-check + production build
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Mobile app
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+See [`flutter_app/README.md`](flutter_app/README.md).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Stripe webhook
+
+Deploy with the Supabase CLI (`supabase functions deploy stripe-webhook`) and set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as function secrets.
+
+## Product docs
+
+[`PRD.md`](PRD.md) has the product requirements, [`ROADMAP.md`](ROADMAP.md) the plan and [`STATUS.md`](STATUS.md) the current build state.
+
+## Status
+
+Alpha. Next steps:
+- [ ] Sync the web app through Supabase, as the mobile app already does
+- [ ] Automated tests for the assessment scoring and recalibration logic
+- [ ] Public deployment
